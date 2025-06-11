@@ -198,7 +198,7 @@
           <p>¿Ya tienes una cuenta?</p>
         </div>
         <div class="iniciar-sesion">
-          <a href="credencial_principal.html">Iniciar Sesión</a>
+          <a href="LoginServlet">Iniciar Sesión</a>
         </div>
       </form>
     </section>
