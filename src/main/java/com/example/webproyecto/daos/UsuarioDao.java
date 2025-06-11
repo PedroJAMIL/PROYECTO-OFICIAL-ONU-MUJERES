@@ -8,6 +8,7 @@ import com.example.webproyecto.beans.Usuario;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Base64;
 
 import java.io.InputStream;
 import java.sql.*; // Importa java.sql.* para PreparedStatement, ResultSet, SQLException, Types
@@ -316,63 +317,75 @@ public class UsuarioDao {
         }
     }
 
-    public boolean insertarUsuario(Usuario usuario) {
-        // Incluye idDistritoTrabajo en el INSERT
-        String sql = "INSERT INTO usuario (nombre, apellidopaterno, apellidomaterno, dni, direccion, "
-                + "idDistrito, idDistritoTrabajo, idRol, idEstado, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        // Si no tienes foto al insertar, deberías ajustar la consulta SQL y los parámetros.
-        // Aquí asumo que 'foto' puede ser null o una cadena vacía.
+    public boolean insertarUsuario(Usuario usuario) throws SQLException {
+        // **¡¡¡CAMBIO CRÍTICO AQUÍ: ACTUALIZAR LA SENTENCIA SQL Y LOS PLACEHOLDERS!!!**
+        // Columnas en DB: nombre, apellidopaterno, apellidomaterno, dni, direccion, idrol, iddistrito, idDistritoTrabajo, idestado, foto, nombrefoto, idZonaTrabajo
+        String sql = "INSERT INTO usuario (" +
+                "nombre, apellidopaterno, apellidomaterno, dni, direccion, " +
+                "idrol, iddistrito, idDistritoTrabajo, idestado, foto, nombrefoto, idZonaTrabajo" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // ¡12 PLACEHOLDERS!
 
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setString(1, usuario.getNombre());
-            stmt.setString(2, usuario.getApellidopaterno());
-            stmt.setString(3, usuario.getApellidomaterno());
-            stmt.setString(4, usuario.getDni());
-            stmt.setString(5, usuario.getDireccion());
-            stmt.setInt(6, usuario.getIdDistrito());
-            // Manejar idDistritoTrabajo
+            pstmt.setString(1, usuario.getNombre());
+            pstmt.setString(2, usuario.getApellidopaterno());
+            pstmt.setString(3, usuario.getApellidomaterno());
+            pstmt.setString(4, usuario.getDni());
+            pstmt.setString(5, usuario.getDireccion());
+            pstmt.setInt(6, usuario.getIdRol()); // idRol
+            pstmt.setInt(7, usuario.getIdDistrito()); // idDistrito de residencia
+
+            // idDistritoTrabajo (posición 8)
             if (usuario.getIdDistritoTrabajo() != null) {
-                stmt.setInt(7, usuario.getIdDistritoTrabajo());
+                pstmt.setInt(8, usuario.getIdDistritoTrabajo());
             } else {
-                stmt.setNull(7, Types.INTEGER); // Para insertar NULL
+                pstmt.setNull(8, java.sql.Types.INTEGER);
             }
-            stmt.setInt(8, usuario.getIdRol());
-            stmt.setInt(9, usuario.getIdEstado());
 
-            // Asumiendo que la foto se guarda como String (ruta) o BLOB si el bean lo maneja así.
-            // Si es BLOB, necesitas convertir de Base64 a InputStream si el 'foto' del bean es Base64 String
+            pstmt.setInt(9, usuario.getIdEstado()); // idEstado (posición 9)
+
+            // Manejo de 'foto' (longblob) y 'nombrefoto' (varchar)
+            // 'usuario.getFoto()' (String) ahora se asume que es el contenido de la foto en Base64
+            // 'usuario.getNombrefoto()' (String) es el nombre del archivo
             if (usuario.getFoto() != null && !usuario.getFoto().isEmpty()) {
-                // Aquí asumo que la columna 'foto' en la DB es un BLOB y que el getFoto() devuelve Base64
-                // Si la columna 'foto' es VARCHAR(ruta), simplemente usa stmt.setString(10, usuario.getFoto());
                 try {
-                    byte[] fotoBytes = java.util.Base64.getDecoder().decode(usuario.getFoto());
-                    stmt.setBlob(10, new java.io.ByteArrayInputStream(fotoBytes));
+                    byte[] fotoBytes = Base64.getDecoder().decode(usuario.getFoto());
+                    pstmt.setBlob(10, new java.io.ByteArrayInputStream(fotoBytes)); // Para la columna 'foto' (BLOB)
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Error al decodificar la imagen Base64 para insertar: " + e.getMessage());
-                    stmt.setNull(10, Types.BLOB); // O Types.VARCHAR si es una ruta
+                    System.err.println("Advertencia: La cadena de foto no es un Base64 válido. Se insertará NULL para la foto binaria.");
+                    pstmt.setNull(10, java.sql.Types.BLOB); // Si no es Base64 válido, insertar NULL
                 }
             } else {
-                stmt.setNull(10, Types.BLOB); // O Types.VARCHAR si es una ruta
+                pstmt.setNull(10, java.sql.Types.BLOB); // Si no hay foto, insertar NULL
             }
 
+            // nombrefoto (posición 11)
+            if (usuario.getNombrefoto() != null && !usuario.getNombrefoto().isEmpty()) {
+                pstmt.setString(11, usuario.getNombrefoto());
+            } else {
+                pstmt.setNull(11, java.sql.Types.VARCHAR);
+            }
 
-            int filasAfectadas = stmt.executeUpdate();
+            // idZonaTrabajo (posición 12)
+            if (usuario.getIdZonaTrabajo() != null) {
+                pstmt.setInt(12, usuario.getIdZonaTrabajo());
+            } else {
+                pstmt.setNull(12, java.sql.Types.INTEGER);
+            }
 
-            if (filasAfectadas > 0) {
-                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         usuario.setIdUsuario(generatedKeys.getInt(1));
-                        return true;
                     }
                 }
+                return true;
             }
-            return false;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
 

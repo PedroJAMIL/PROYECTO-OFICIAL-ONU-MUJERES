@@ -1,4 +1,4 @@
-package com.example.webproyecto.daos.encuestador;
+package com.example.webproyecto.daos.encuestador; // <-- A ESTO
 
 import com.example.webproyecto.beans.Zona;
 import java.sql.*;

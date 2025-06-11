@@ -247,6 +247,15 @@
             margin-bottom: 0;
             background: #fff;
             box-sizing: border-box;
+            color: #777; /* <-- MODIFICADO: Un color gris más claro para el texto por defecto */
+            font-weight: normal; /* <-- AÑADIDO: Asegura que el texto no esté en negrita */
+        }
+
+        /* Estilo para el texto de los placeholders en los campos input */
+        .form-input::placeholder {
+            color: #999; /* <-- AÑADIDO: Un color ligeramente más claro para los placeholders */
+            opacity: 1; /* <-- AÑADIDO: Asegura que no haya opacidad reducida no deseada */
+            font-weight: normal; /* <-- AÑADIDO: Asegura que el placeholder no esté en negrita */
         }
         .form-btns {
             display: flex;
@@ -384,8 +393,8 @@
                 <input type="text" name="direccion" class="form-input" placeholder="Dirección" required>
             </div>
             <div class="form-group">
-                <select name="idDistrito" class="form-input" required>
-                    <option value="">Seleccione un distrito</option>
+                <select id="idDistritoResidencia" name="idDistrito" class="form-input" required>
+                    <option value="">Distrito de Residencia</option>
                     <c:forEach var="distrito" items="${distritos}">
                         <option value="${distrito.idDistrito}">${distrito.nombreDistrito}</option>
                     </c:forEach>
@@ -396,6 +405,24 @@
             </div>
             <div class="form-group">
                 <input type="password" name="contrasenha" class="form-input" placeholder="Contraseña" required>
+            </div>
+
+            <div class="crear-coordinador-title">DATOS DEL TRABAJO</div>
+            <div class="form-group">
+                <select id="idZonaTrabajo" name="idZonaTrabajo" class="form-input" required>
+                    <option value="">Selecion zona de trabajo:</option>
+                    <c:forEach var="zona" items="${zonas}">
+                        <option value="${zona.idZona}">${zona.nombreZona}</option>
+                    </c:forEach>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="idFormularioAsignado" name="idFormularioAsignado" class="form-input" required>
+                    <option value="">Selecciones formulario a asignar</option>
+                    <c:forEach var="formulario" items="${formularios}">
+                        <option value="${formulario.idFormulario}">${formulario.titulo}</option>
+                    </c:forEach>
+                </select>
             </div>
             <div class="form-btns">
                 <button type="button" class="btn" onclick="window.history.back()">Volver</button>

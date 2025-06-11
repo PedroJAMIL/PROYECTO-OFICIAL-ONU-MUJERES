@@ -19,16 +19,16 @@ public class FormularioDao {
      */
     public String obtenerTituloFormularioPorId(int idFormulario) {
         String titulo = "";
+        // La consulta debe tener un WHERE con el placeholder '?'
+        String sql = "SELECT titulo FROM formulario WHERE idFormulario = ?";
 
-        String sql = "SELECT idFormulario, titulo, activo FROM formulario";
-
-        try (Connection conn = DriverManager.getConnection(url, user, pass);
+        try (Connection conn = DriverManager.getConnection(url, user, pass); // O mejor: Conexion.obtenerConexion()
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, idFormulario);
+            stmt.setInt(1, idFormulario); // Ahora sí hay un placeholder para este parámetro
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {    
+                if (rs.next()) {
                     titulo = rs.getString("titulo");
                 }
             }
@@ -36,7 +36,6 @@ public class FormularioDao {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return titulo;
     }
 
@@ -106,6 +105,30 @@ public class FormularioDao {
             ps.setBoolean(6, formulario.isActivo());
             ps.executeUpdate();
         }
+    }
+    public List<Formulario> listarFormularios() throws SQLException { // <--- Nombre de método consistente con otros DAOs
+        List<Formulario> formularios = new ArrayList<>();
+        // Se seleccionan todos los campos relevantes de la tabla
+        String sql = "SELECT idFormulario, titulo, descripcion, fechaCreacion, idCoordinador, idCarpeta, activo FROM formulario ORDER BY titulo";
+
+        try (Connection conn = Conexion.obtenerConexion(); // <--- Usando la clase Conexion
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Formulario f = new Formulario();
+                f.setIdFormulario(rs.getInt("idFormulario"));
+                f.setTitulo(rs.getString("titulo"));
+                f.setDescripcion(rs.getString("descripcion"));
+                // Convertir java.sql.Date a java.util.Date
+                f.setFechaCreacion(new java.util.Date(rs.getDate("fechaCreacion").getTime()));
+                f.setIdCoordinador(rs.getInt("idCoordinador"));
+                f.setIdCarpeta(rs.getInt("idCarpeta"));
+                f.setActivo(rs.getBoolean("activo"));
+                formularios.add(f);
+            }
+        }
+        return formularios;
     }
 }
 
