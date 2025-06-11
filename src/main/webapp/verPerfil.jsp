@@ -387,7 +387,7 @@
                     <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
                 </c:when>
                 <c:when test="${datosPerfil.nombreRol == 'Coordinador Interno'}">
-                    <li><a href="DashboardCoordinadorServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
+                    <li><a href="DashboardServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
                     <li><a href="GestionEncuestadoresServlet"><i class="fa-solid fa-users"></i> Gestionar Encuestadores</a></li>
                     <li><a href="GestionarFormulariosServlet"><i class="fa-solid fa-file-alt"></i> Gestionar Formularios</a></li>
                     <li><a href="CargarArchivosServlet"><i class="fa-solid fa-upload"></i> Cargar Archivos</a></li>
