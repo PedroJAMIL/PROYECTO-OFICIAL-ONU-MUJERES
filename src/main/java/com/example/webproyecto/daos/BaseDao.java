@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class BaseDao {
     protected Connection getConnection() throws SQLException {
-        String url = "jdbc:mysql://localhost:3306/onu_mujeres";
+        String url = "jdbc:mysql://localhost:3306/proyecto";
         String user = "root";
         String password = "root";
         return DriverManager.getConnection(url, user, password);

@@ -32,7 +32,6 @@ public class CredencialRegistroServlet extends HttpServlet {
         int idDistrito = Integer.parseInt(request.getParameter("distrito"));
         String correo = request.getParameter("correo");
 
-        // Crear objeto usuario
         Usuario usuario = new Usuario();
         usuario.setNombre(nombre);
         usuario.setApellidopaterno(apellidoPaterno);
@@ -43,49 +42,52 @@ public class CredencialRegistroServlet extends HttpServlet {
         usuario.setIdRol(3); // Rol por defecto
         usuario.setIdEstado(2); // Estado pendiente de verificación
 
-        UsuarioDao usuarioDao = new UsuarioDao();
         CredencialDao credencialDao = new CredencialDao();
 
         try {
             // Verificar si el correo ya existe
             if (credencialDao.existeCorreo(correo)) {
                 request.setAttribute("error", "El correo ya está registrado");
-                doGet(request, response);
+                request.getRequestDispatcher("registro.jsp").forward(request, response);
                 return;
             }
 
-            // Verificar si el DNI ya existe
-            if (usuarioDao.existeDni(dni)) {
-                request.setAttribute("error", "El DNI ya está registrado");
-                doGet(request, response);
+            // Verificar si el DNI ya existe (implementa este método en UsuarioDao si no lo tienes)
+            // if (usuarioDao.existeDni(dni)) {
+            //     request.setAttribute("error", "El DNI ya está registrado");
+            //     request.getRequestDispatcher("registro.jsp").forward(request, response);
+            //     return;
+            // }
+
+            // Insertar usuario y obtener su id
+            int idUsuario = credencialDao.insertarUsuarioYObtenerId(usuario);
+            if (idUsuario == -1) {
+                request.setAttribute("error", "Error al registrar usuario.");
+                request.getRequestDispatcher("registro.jsp").forward(request, response);
                 return;
             }
 
-            // Insertar usuario
-            if (usuarioDao.insertarUsuario(usuario)) {
-                // Generar y guardar código de verificación
-                CodigoDao codigoDao = new CodigoDao();
-                String codigo = codigoDao.generateCodigo(correo);
+            // Insertar credencial con contraseña null
+            credencialDao.insertarCredencial(correo, null, idUsuario);
 
-                // Enviar correo de verificación
-                String subject = "Verifica tu cuenta";
-                String body = "Tu código de verificación es: " + codigo +
-                        "\nO haz clic en el siguiente enlace para establecer tu contraseña:\n" +
-                        "http://localhost:8080/PROYECTO-OFICIAL-ONU-MUJERES/establecerContrasena.jsp?codigo=" + codigo;
-                MailSender.sendEmail(correo, subject, body);
+            // Generar y guardar código de verificación
+            CodigoDao codigoDao = new CodigoDao();
+            String codigo = codigoDao.generateCodigo(correo);
 
-                // Redirigir a página de aviso
-                response.sendRedirect("verificaTuCorreo.jsp");
-                return;
-            }
+            // Enviar correo de verificación
+            String subject = "Verifica tu cuenta";
+            String body = "Tu código de verificación es: " + codigo +
+                    "\nO haz clic en el siguiente enlace para establecer tu contraseña:\n" +
+                    "http://localhost:8080/PROYECTO-OFICIAL-ONU-MUJERES/EstablecerContrasenaServlet?codigo=" + codigo;
+            MailSender.sendEmail(correo, subject, body);
 
-            request.setAttribute("error", "Error en el registro. Intente nuevamente.");
-            doGet(request, response);
+            // Redirigir a página de aviso
+            response.sendRedirect("verificaTuCorreo.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Error en el servidor: " + e.getMessage());
-            doGet(request, response);
+            request.getRequestDispatcher("registro.jsp").forward(request, response);
         }
     }
 }

@@ -9,7 +9,7 @@ public class CodigoDao extends BaseDao {
     public String generateCodigo(String correo) {
         Usuario usuario = getUsuarioByCorreo(correo);
         String codigo = CodeGenerator.generator();
-        String sql = "INSERT INTO codigo_generado (usuario_id, codigo) VALUES (?, ?)";
+        String sql = "INSERT INTO codigo_verificacion (idusuario, codigo) VALUES (?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, usuario.getUsuarioId());
@@ -23,15 +23,15 @@ public class CodigoDao extends BaseDao {
 
     public Usuario getUsuarioByCorreo(String correo) {
         Usuario usuario = null;
-        String sql = "SELECT * FROM usuarios WHERE correo = ?";
+        String sql = "SELECT u.* FROM usuario u JOIN credencial c ON u.idusuario = c.idusuario WHERE c.correo = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, correo);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     usuario = new Usuario();
-                    usuario.setUsuarioId(rs.getInt("usuario_id"));
-                    usuario.setCorreo(rs.getString("correo"));
+                    usuario.setUsuarioId(rs.getInt("idusuario"));
+                    usuario.setCorreo(correo); // O puedes omitir si no tienes setCorreo
                     // ...otros campos...
                 }
             }
@@ -42,7 +42,7 @@ public class CodigoDao extends BaseDao {
     }
 
     public boolean findCodigo(String codigoIngresado) {
-        String sql = "SELECT codigo FROM codigo_generado WHERE codigo = ?";
+        String sql = "SELECT codigo FROM codigo_verificacion WHERE codigo = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, codigoIngresado);
@@ -55,7 +55,7 @@ public class CodigoDao extends BaseDao {
     }
 
     public void deleteCodigo(String codigo) {
-        String sql = "DELETE FROM codigo_generado WHERE codigo = ?";
+        String sql = "DELETE FROM codigo_verificacion WHERE codigo = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, codigo);
@@ -66,7 +66,7 @@ public class CodigoDao extends BaseDao {
     }
 
     public void marcarUsuarioComoVerificado(int usuarioId) {
-        String sql = "UPDATE usuarios SET verificado = 1 WHERE usuario_id = ?";
+        String sql = "UPDATE usuario SET idestado = 1 WHERE idusuario = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, usuarioId);
@@ -77,13 +77,13 @@ public class CodigoDao extends BaseDao {
     }
 
     public int getUsuarioIdByCodigo(String codigo) {
-        String sql = "SELECT usuario_id FROM codigo_generado WHERE codigo = ?";
+        String sql = "SELECT idusuario FROM codigo_verificacion WHERE codigo = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, codigo);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("usuario_id");
+                    return rs.getInt("idusuario");
                 }
             }
         } catch (SQLException e) {
@@ -93,7 +93,7 @@ public class CodigoDao extends BaseDao {
     }
 
     public void actualizarContrasena(int usuarioId, String contrasena) {
-        String sql = "UPDATE usuarios SET contrasena = ? WHERE usuario_id = ?";
+        String sql = "UPDATE credencial SET contrasenha = ? WHERE idusuario = ?";
         String hashedPassword = PasswordUtil.hashPassword(contrasena);
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
