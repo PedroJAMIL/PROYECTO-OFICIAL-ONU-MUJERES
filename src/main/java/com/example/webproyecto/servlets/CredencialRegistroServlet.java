@@ -1,13 +1,12 @@
 package com.example.webproyecto.servlets;
 
-import com.example.webproyecto.beans.Distrito;
 import com.example.webproyecto.beans.Usuario;
-import com.example.webproyecto.beans.Credencial;
 import com.example.webproyecto.daos.CredencialDao;
 import com.example.webproyecto.daos.DistritoDao;
 import com.example.webproyecto.daos.UsuarioDao;
+import com.example.webproyecto.daos.CodigoDao;
+import com.example.webproyecto.utils.MailSender;
 import java.io.IOException;
-import java.util.List;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -32,17 +31,8 @@ public class CredencialRegistroServlet extends HttpServlet {
         String direccion = request.getParameter("direccion");
         int idDistrito = Integer.parseInt(request.getParameter("distrito"));
         String correo = request.getParameter("correo");
-        String contrasenha = request.getParameter("contrasenha");
-        String confirmarContrasenha = request.getParameter("confirmarContrasenha");
 
-        // Validar contraseñas
-        if (!contrasenha.equals(confirmarContrasenha)) {
-            request.setAttribute("error", "Las contraseñas no coinciden");
-            doGet(request, response);
-            return;
-        }
-
-        // Crear objetos
+        // Crear objeto usuario
         Usuario usuario = new Usuario();
         usuario.setNombre(nombre);
         usuario.setApellidopaterno(apellidoPaterno);
@@ -50,14 +40,9 @@ public class CredencialRegistroServlet extends HttpServlet {
         usuario.setDni(dni);
         usuario.setDireccion(direccion);
         usuario.setIdDistrito(idDistrito);
-        usuario.setIdRol(3); // Rol por defecto (2 = usuario normal)
-        usuario.setIdEstado(2); // Estado activo
+        usuario.setIdRol(3); // Rol por defecto
+        usuario.setIdEstado(2); // Estado pendiente de verificación
 
-        Credencial credencial = new Credencial();
-        credencial.setCorreo(correo);
-        credencial.setContrasenha(contrasenha);
-
-        // Registrar en BD
         UsuarioDao usuarioDao = new UsuarioDao();
         CredencialDao credencialDao = new CredencialDao();
 
@@ -78,16 +63,20 @@ public class CredencialRegistroServlet extends HttpServlet {
 
             // Insertar usuario
             if (usuarioDao.insertarUsuario(usuario)) {
-                // Obtener ID del usuario insertado
-                Usuario usuarioRegistrado = usuarioDao.obtenerUsuarioPorDni(dni);
-                credencial.setIdUsuario(usuarioRegistrado.getIdUsuario());
+                // Generar y guardar código de verificación
+                CodigoDao codigoDao = new CodigoDao();
+                String codigo = codigoDao.generateCodigo(correo);
 
-                // Insertar credencial
-                if (credencialDao.insertarCredencial(credencial)) {
-                    // Redirigir a login con mensaje de éxito
-                    response.sendRedirect("login.jsp?registro=exito");
-                    return;
-                }
+                // Enviar correo de verificación
+                String subject = "Verifica tu cuenta";
+                String body = "Tu código de verificación es: " + codigo +
+                        "\nO haz clic en el siguiente enlace para establecer tu contraseña:\n" +
+                        "http://localhost:8080/PROYECTO-OFICIAL-ONU-MUJERES/establecerContrasena.jsp?codigo=" + codigo;
+                MailSender.sendEmail(correo, subject, body);
+
+                // Redirigir a página de aviso
+                response.sendRedirect("verificaTuCorreo.jsp");
+                return;
             }
 
             request.setAttribute("error", "Error en el registro. Intente nuevamente.");
@@ -95,7 +84,7 @@ public class CredencialRegistroServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Error en el servidor: " + e.getMessage()); // Mostrar detalle
+            request.setAttribute("error", "Error en el servidor: " + e.getMessage());
             doGet(request, response);
         }
     }

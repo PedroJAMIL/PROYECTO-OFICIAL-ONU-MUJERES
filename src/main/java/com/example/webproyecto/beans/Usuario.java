@@ -1,7 +1,8 @@
 package com.example.webproyecto.beans;
 
 public class Usuario {
-    private int idUsuario;
+    private int usuarioId;
+    private String correo;
     private String nombre;
     private String apellidopaterno;
     private String apellidomaterno;
@@ -13,12 +14,28 @@ public class Usuario {
     private String foto;
 
     // Getters y Setters
+    public int getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(int usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
     public int getIdUsuario() {
-        return idUsuario;
+        return usuarioId;
     }
 
     public void setIdUsuario(int idUsuario) {
-        this.idUsuario = idUsuario;
+        this.usuarioId = idUsuario;
     }
 
     public String getNombre() {
