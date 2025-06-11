@@ -35,7 +35,7 @@ public class CredencialDao {
 
         String sql = """
             SELECT u.idUsuario, u.nombre, u.apellidopaterno, u.apellidomaterno, u.dni, u.direccion,
-                   u.idRol, u.idDistrito, u.idEstado, u.foto, c.contrasenha
+                   u.idRol, u.idDistrito, u.idEstado, u.foto, u.idDistritoTrabajo, idZonaTrabajo, c.contrasenha
             FROM usuario u
             INNER JOIN credencial c ON u.idUsuario = c.idUsuario
             WHERE c.correo = ? AND u.idEstado IN (1,2,3) AND c.verificado = TRUE
@@ -66,6 +66,8 @@ public class CredencialDao {
                         usuario.setIdRol(rs.getInt("idRol"));
                         usuario.setIdEstado(rs.getInt("idEstado"));
                         usuario.setFoto(rs.getString("foto"));
+                        usuario.setIdDistritoTrabajo(rs.getInt("idDistritoTrabajo"));
+                        usuario.setIdZonaTrabajo(rs.getInt("idZonaTrabajo"));
                     }
                 }
 

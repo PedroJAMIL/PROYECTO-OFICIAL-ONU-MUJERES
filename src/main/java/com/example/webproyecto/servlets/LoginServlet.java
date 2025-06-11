@@ -30,7 +30,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("nombre", usuario.getNombre());
             session.setAttribute("apellidopaterno", usuario.getApellidopaterno());
             session.setAttribute("apellidomaterno", usuario.getApellidomaterno());
-
+            session.setAttribute("idZonaTrabajo", usuario.getIdZonaTrabajo());
             // Redirigir a servlets según el rol
             int idrol = usuario.getIdRol();
             if (idrol == 1) {

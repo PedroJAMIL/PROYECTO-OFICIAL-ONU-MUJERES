@@ -1,6 +1,9 @@
 package com.example.webproyecto.daos.encuestador;
 
 import com.example.webproyecto.beans.SesionRespuesta;
+import com.example.webproyecto.dtos.EstadoFormularioDTO;
+import com.example.webproyecto.dtos.ResumenEncuestadorDTO;
+import com.example.webproyecto.dtos.ResumenZonaDTO;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -261,5 +264,113 @@ public class SesionRespuestaDao {
 
         return resumen;
     }
+
+    public List<ResumenEncuestadorDTO> obtenerResumenPorEncuestador(int idZona) {
+        List<ResumenEncuestadorDTO> lista = new ArrayList<>();
+
+        String sql = """
+        SELECT u.nombre, COUNT(sr.idSesion) AS total
+        FROM sesionrespuesta sr
+        JOIN asignacionformulario af ON sr.idAsignacionFormulario = af.idAsignacionFormulario
+        JOIN usuario u ON af.idEncuestador = u.idUsuario
+        JOIN distrito d ON u.idDistritoTrabajo = d.idDistrito
+        WHERE sr.estadoTerminado = 1 AND d.idZona = ?
+        GROUP BY u.idUsuario
+        ORDER BY total DESC;
+    """;
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idZona);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String nombre = rs.getString("nombre");
+                    int total = rs.getInt("total");
+                    lista.add(new ResumenEncuestadorDTO(nombre, total));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
+
+    public List<ResumenZonaDTO> obtenerResumenPorZona(int idZona) {
+        List<ResumenZonaDTO> lista = new ArrayList<>();
+
+        String sql = """
+        SELECT z.nombreZona, COUNT(sr.idSesion) AS total
+        FROM sesionrespuesta sr
+        JOIN asignacionformulario af ON sr.idAsignacionFormulario = af.idAsignacionFormulario
+        JOIN usuario u ON af.idEncuestador = u.idUsuario
+        JOIN distrito d ON u.idDistritoTrabajo = d.idDistrito
+        JOIN zona z ON d.idZona = z.idZona
+        WHERE sr.estadoTerminado = 1 AND z.idZona = ?
+        GROUP BY z.idZona
+        ORDER BY total DESC;
+    """;
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idZona);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String nombreZona = rs.getString("nombreZona");
+                    int total = rs.getInt("total");
+                    lista.add(new ResumenZonaDTO(nombreZona, total));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
+
+    public EstadoFormularioDTO obtenerResumenEstadoFormularios(int idZona) {
+        int totalCompletados = 0;
+        int totalBorradores = 0;
+
+        String sql = """
+        SELECT sr.estadoTerminado, COUNT(*) AS total
+        FROM sesionrespuesta sr
+        JOIN asignacionformulario af ON sr.idAsignacionFormulario = af.idAsignacionFormulario
+        JOIN usuario u ON af.idEncuestador = u.idUsuario
+        JOIN distrito d ON u.idDistritoTrabajo = d.idDistrito
+        WHERE d.idZona = ?
+        GROUP BY sr.estadoTerminado;
+    """;
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idZona);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int estado = rs.getInt("estadoTerminado");
+                    int total = rs.getInt("total");
+
+                    if (estado == 1) {
+                        totalCompletados = total;
+                    } else {
+                        totalBorradores = total;
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return new EstadoFormularioDTO(totalCompletados, totalBorradores);
+    }
+
 
 }

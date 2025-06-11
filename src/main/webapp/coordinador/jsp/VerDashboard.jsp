@@ -393,41 +393,153 @@
   </div>
 </header>
 
-<!-- Contenido principal -->
-<main class="contenedor-principal">
-  <div class="dashboard-grid">
-    <div class="dashboard-card card-encuestador">
-      Tabla de encuestas por encuestador
-    </div>
-    <div class="dashboard-card card-grafico-distrito">
-      <select class="dashboard-select">
-        <option>Zonas</option>
-        <option>Zona 1</option>
-        <option>Zona 2</option>
-      </select>
-      Gráfico de encuestados por Distrito
-      <div class="fake-bar-chart">
-        <div class="fake-bar fake-bar1"></div>
-        <div class="fake-bar fake-bar2"></div>
-        <div class="fake-bar fake-bar3"></div>
-        <div class="fake-bar fake-bar4"></div>
-        <div class="fake-bar fake-bar5"></div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<main class="container py-5">
+  <h2 class="mb-4 text-center">Dashboard del Coordinador</h2>
+
+  <!-- Tarjetas resumen -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Total Completados</h5>
+          <p class="card-text fs-3">${estadoFormularios.totalCompletados}</p>
+        </div>
       </div>
     </div>
-    <div class="dashboard-card card-dato">
-      Dato
+    <div class="col-md-4">
+      <div class="card text-white bg-secondary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Total Borradores</h5>
+          <p class="card-text fs-3">${estadoFormularios.totalBorradores}</p>
+        </div>
+      </div>
     </div>
-    <div class="dashboard-card card-otros">
-      Otros gráficos
+    <div class="col-md-4">
+      <div class="card text-white bg-success mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Total General</h5>
+          <p class="card-text fs-3">
+            ${estadoFormularios.totalCompletados + estadoFormularios.totalBorradores}
+          </p>
+        </div>
+      </div>
     </div>
-    <div class="dashboard-card card-pastel">
-      Gráfico pastel de encuestador por zonas
-      <div class="fake-pie"></div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="row">
+    <!-- Gráfico de barras: respuestas por encuestador -->
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-header bg-info text-white">Respuestas por Encuestador</div>
+        <div class="card-body">
+          <canvas id="graficoEncuestadores"></canvas>
+        </div>
+      </div>
     </div>
-    <div class="dashboard-card card-reporte">
-      Reporte de actividad
+
+    <!-- Gráfico de torta: respuestas por zona -->
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-header bg-warning text-dark">Respuestas por Zona</div>
+        <div class="card-body">
+          <canvas id="graficoZonas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico Doughnut: Completados vs Borradores -->
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <div class="card">
+        <div class="card-header bg-dark text-white">Completados vs Borradores</div>
+        <div class="card-body">
+          <canvas id="graficoEstado"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 </main>
+
+<script>
+  // === Encuestadores ===
+  const labelsEncuestador = [
+    <c:forEach var="dto" items="${resumenEncuestadores}" varStatus="loop">
+    "${dto.nombreEncuestador}"<c:if test="${!loop.last}">,</c:if>
+    </c:forEach>
+  ];
+  const dataEncuestador = [
+    <c:forEach var="dto" items="${resumenEncuestadores}" varStatus="loop">
+    ${dto.cantidadRespuestas}<c:if test="${!loop.last}">,</c:if>
+    </c:forEach>
+  ];
+
+  if (labelsEncuestador.length > 0) {
+    new Chart(document.getElementById("graficoEncuestadores"), {
+      type: "bar",
+      data: {
+        labels: labelsEncuestador,
+        datasets: [{
+          label: "Cantidad de respuestas",
+          data: dataEncuestador,
+          backgroundColor: "#0d6efd"
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  // === Zonas ===
+  const labelsZonas = [
+    <c:forEach var="dto" items="${resumenZonas}" varStatus="loop">
+    "${dto.nombreZona}"<c:if test="${!loop.last}">,</c:if>
+    </c:forEach>
+  ];
+  const dataZonas = [
+    <c:forEach var="dto" items="${resumenZonas}" varStatus="loop">
+    ${dto.totalRespuestas}<c:if test="${!loop.last}">,</c:if>
+    </c:forEach>
+  ];
+
+  if (labelsZonas.length > 0) {
+    new Chart(document.getElementById("graficoZonas"), {
+      type: "pie",
+      data: {
+        labels: labelsZonas,
+        datasets: [{
+          data: dataZonas,
+          backgroundColor: ["#f39c12", "#e67e22", "#d35400", "#f1c40f", "#f7dc6f"]
+        }]
+      },
+      options: { responsive: true }
+    });
+  }
+
+  // === Estado completado vs borrador ===
+  const completados = ${estadoFormularios.totalCompletados};
+  const borradores = ${estadoFormularios.totalBorradores};
+
+  if (completados + borradores > 0) {
+    new Chart(document.getElementById("graficoEstado"), {
+      type: "doughnut",
+      data: {
+        labels: ["Completados", "Borradores"],
+        datasets: [{
+          data: [completados, borradores],
+          backgroundColor: ["#28a745", "#6c757d"]
+        }]
+      },
+      options: { responsive: true }
+    });
+  }
+</script>
+
 </body>
 </html>

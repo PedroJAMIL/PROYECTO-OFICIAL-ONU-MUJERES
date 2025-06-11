@@ -12,6 +12,7 @@ public class Usuario {
     private int idRol;
     private int idEstado;
     private String foto;
+    private Integer idZonaTrabajo;
 
     // Constructores (puedes añadir uno que incluya idDistritoTrabajo si es necesario)
     public Usuario() {
@@ -106,4 +107,13 @@ public class Usuario {
     public void setFoto(String foto) {
         this.foto = foto;
     }
+
+    public Integer getIdZonaTrabajo() {
+        return idZonaTrabajo;
+    }
+
+    public void setIdZonaTrabajo(Integer idZonaTrabajo) {
+        this.idZonaTrabajo = idZonaTrabajo;
+    }
+
 }
