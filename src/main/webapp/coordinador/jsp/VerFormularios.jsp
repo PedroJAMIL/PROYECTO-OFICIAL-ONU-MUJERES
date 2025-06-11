@@ -385,6 +385,7 @@
     .btn-filtrar:hover {
         background-color: #2980b9;
     }
+
   </style>
 </head>
 <script>
@@ -595,8 +596,8 @@
         <tr>
           <th>Nombre</th>
           <th>DNI</th>
-          <th>Correo electrónico</th> 
-          <th>Zona</th>
+          <th>Correo electrónico</th>
+          <th>Distrito</th>
           <th>Estado</th>
         </tr>
         </thead>
@@ -634,8 +635,60 @@
             </tr>
           </c:forEach>
         </tbody>
+
       </table>
-    </div>
+          <div style="margin-top: 30px; display: flex; justify-content: center;">
+              <c:if test="${totalPaginas >= 1}">
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                      <c:forEach begin="1" end="${totalPaginas}" var="i">
+                          <c:choose>
+                              <c:when test="${i == paginaActual}">
+                        <span style="
+                            padding: 6px 14px;
+                            background-color: #e6f0ff;
+                            color: #3498db;
+                            font-weight: bold;
+                            border-radius: 8px;
+                            font-size: 15px;
+                            border: 1px solid #3498db;
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                        ">${i}</span>
+                              </c:when>
+                              <c:otherwise>
+                                  <a href="GestionEncuestadoresServlet?pagina=${i}
+                           <c:if test='${not empty param.nombre}'> &amp;nombre=${fn:escapeXml(param.nombre)} </c:if>
+                           <c:if test='${not empty param.estado}'> &amp;estado=${param.estado} </c:if>"
+                                     style="
+                               padding: 6px 14px;
+                               border-radius: 8px;
+                               background-color: #fff;
+                               border: 1px solid #3498db;
+                               color: #3498db;
+                               text-decoration: none;
+                               font-size: 15px;
+                               font-weight: bold;
+                               transition: background 0.2s ease;
+                           "
+                                     onmouseover="this.style.background='#dbeeff'"
+                                     onmouseout="this.style.background='#fff'">
+                                          ${i}
+                                  </a>
+                              </c:otherwise>
+                          </c:choose>
+                      </c:forEach>
+
+                      <!-- Flecha siguiente (solo si no estamos en la última página) -->
+                      <c:if test="${paginaActual < totalPaginas}">
+                          <a href="GestionEncuestadoresServlet?pagina=${paginaActual + 1}
+                   <c:if test='${not empty param.nombre}'> &amp;nombre=${fn:escapeXml(param.nombre)} </c:if>
+                   <c:if test='${not empty param.estado}'> &amp;estado=${param.estado} </c:if>"
+                             style="text-decoration: none; font-size: 18px; font-weight: bold; color: #3498db;">&gt;</a>
+                      </c:if>
+                  </div>
+              </c:if>
+          </div>
+
+      </div>
   </div>
 
 
