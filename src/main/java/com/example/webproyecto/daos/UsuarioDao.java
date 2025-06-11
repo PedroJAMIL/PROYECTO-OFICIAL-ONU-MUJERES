@@ -183,6 +183,53 @@ public class UsuarioDao {
         }
         return usuario;
     }
+    public List<CoordinadorDTO> listarEncuestadoresPorZonaCoordinador(int idUsuarioCoordinador) {
+        List<CoordinadorDTO> lista = new ArrayList<>();
+
+        String sql = """
+        SELECT u_enc.*, c.correo
+        FROM usuario AS u_coord
+        JOIN distrito AS d_coord ON u_coord.idDistritoTrabajo = d_coord.iddistrito
+        JOIN distrito AS d_enc ON d_enc.idzona = d_coord.idzona
+        JOIN usuario AS u_enc ON u_enc.idDistritoTrabajo = d_enc.iddistrito
+        LEFT JOIN credencial c ON u_enc.idUsuario = c.idUsuario
+        WHERE u_coord.idUsuario = ?
+          AND u_coord.idrol = 2
+          AND u_enc.idrol = 3
+    """;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idUsuarioCoordinador);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Usuario u = new Usuario();
+                u.setIdUsuario(rs.getInt("idUsuario"));
+                u.setNombre(rs.getString("nombre"));
+                u.setApellidopaterno(rs.getString("apellidopaterno"));
+                u.setApellidomaterno(rs.getString("apellidomaterno"));
+                u.setDni(rs.getString("dni"));
+                u.setDireccion(rs.getString("direccion"));
+                u.setIdDistrito(rs.getInt("idDistrito"));
+                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo"));
+                u.setIdRol(rs.getInt("idRol"));
+                u.setIdEstado(rs.getInt("idEstado"));
+                u.setFoto(rs.getString("foto"));
+
+                Credencial c = new Credencial();
+                c.setCorreo(rs.getString("correo"));
+
+                lista.add(new CoordinadorDTO(u, c));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
 
     public List<CoordinadorDTO> listarEncuestadoresConCorreo() {
         List<CoordinadorDTO> lista = new ArrayList<>();
