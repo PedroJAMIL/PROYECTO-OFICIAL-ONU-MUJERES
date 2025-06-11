@@ -22,7 +22,7 @@ public class CrearCoordinadorServlet extends HttpServlet {
         DistritoDao distritoDao = new DistritoDao();
         List<Distrito> listaDistritos = distritoDao.listarDistritos();
         request.setAttribute("distritos", listaDistritos);
-        
+
         request.getRequestDispatcher("admin/crearCoordinador.jsp").forward(request, response);
     }
 
@@ -35,6 +35,8 @@ public class CrearCoordinadorServlet extends HttpServlet {
         String dni = request.getParameter("dni");
         String direccion = request.getParameter("direccion");
         int idDistrito = Integer.parseInt(request.getParameter("idDistrito"));
+        // **IMPORTANTE**: Obtener idDistritoTrabajo del request
+        int idDistritoTrabajo = Integer.parseInt(request.getParameter("idDistritoTrabajo"));
         String correo = request.getParameter("correo");
         String password = request.getParameter("contrasenha");
         int idEstado = 2; // Activo
@@ -59,6 +61,8 @@ public class CrearCoordinadorServlet extends HttpServlet {
         usuario.setDni(dni);
         usuario.setDireccion(direccion);
         usuario.setIdDistrito(idDistrito);
+        usuario.setIdDistritoTrabajo(idDistritoTrabajo); // Asignar el valor obtenido del request
+
         usuario.setIdRol(2); // Coordinador
         usuario.setIdEstado(idEstado);
         usuario.setFoto(foto);
