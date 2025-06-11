@@ -75,7 +75,7 @@ public class CargarArchivosServlet extends HttpServlet {
             String nombreArchivoOriginal = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
             // Evitar problemas con nombres de archivo que contengan barras o caracteres especiales
             nombreArchivoOriginal = nombreArchivoOriginal.replaceAll("[^a-zA-Z0-9.\\-_]", "_");
-
+// tener en cuenta eso para guardarlo en la nube
             String uploadDir = getServletContext().getRealPath("/uploads"); // Ruta donde se guardarán los archivos
             // Asegurarse de que el directorio de subida exista
             Path uploadPath = Paths.get(uploadDir);

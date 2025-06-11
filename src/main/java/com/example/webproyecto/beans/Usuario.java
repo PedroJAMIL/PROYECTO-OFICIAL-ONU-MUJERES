@@ -7,10 +7,15 @@ public class Usuario {
     private String apellidomaterno;
     private String dni;
     private String direccion;
-    private int idDistrito;
+    private int idDistrito; // Asumo que es idDistritoResidencia
+    private Integer idDistritoTrabajo; // Nuevo atributo
     private int idRol;
     private int idEstado;
     private String foto;
+
+    // Constructores (puedes añadir uno que incluya idDistritoTrabajo si es necesario)
+    public Usuario() {
+    }
 
     // Getters y Setters
     public int getIdUsuario() {
@@ -67,6 +72,15 @@ public class Usuario {
 
     public void setIdDistrito(int idDistrito) {
         this.idDistrito = idDistrito;
+    }
+
+    // Nuevo Getter y Setter para idDistritoTrabajo
+    public Integer getIdDistritoTrabajo() {
+        return idDistritoTrabajo;
+    }
+
+    public void setIdDistritoTrabajo(Integer idDistritoTrabajo) {
+        this.idDistritoTrabajo = idDistritoTrabajo;
     }
 
     public int getIdRol() {
