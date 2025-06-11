@@ -598,7 +598,6 @@
           <th>Correo electrónico</th> 
           <th>Zona</th>
           <th>Estado</th>
-          <th>Último acceso</th>
         </tr>
         </thead>
         <tbody>
