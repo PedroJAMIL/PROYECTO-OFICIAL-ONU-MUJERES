@@ -15,7 +15,9 @@ public class ArchivoCargado {
     // Constructor vacío (necesario para frameworks/mapeos)
     public ArchivoCargado() {
     }
-
+  //  Constructor con todos los campos
+    //cosaaaa
+    //hola
     // Constructor con los campos más importantes
     public ArchivoCargado(String nombreArchivoOriginal, String rutaGuardado, LocalDateTime fechaCarga, int idUsuarioQueCargo, String estadoProcesamiento, String mensajeProcesamiento, Integer idFormularioAsociado) {
         this.nombreArchivoOriginal = nombreArchivoOriginal;
