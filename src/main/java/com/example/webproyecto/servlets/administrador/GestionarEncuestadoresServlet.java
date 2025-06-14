@@ -1,4 +1,3 @@
-
 package com.example.webproyecto.servlets.administrador;
 
 import com.example.webproyecto.daos.UsuarioDao;
@@ -60,13 +59,17 @@ public class GestionarEncuestadoresServlet extends HttpServlet {
 
         int totalEncuestadores = encuestadores.size();
         int totalPaginas = (int) Math.ceil((double) totalEncuestadores / ENCUESTADORES_POR_PAGINA);
+        if (totalPaginas == 0) totalPaginas = 1;
         if (paginaActual < 1) paginaActual = 1;
         if (paginaActual > totalPaginas) paginaActual = totalPaginas;
 
         int desde = (paginaActual - 1) * ENCUESTADORES_POR_PAGINA;
         int hasta = Math.min(desde + ENCUESTADORES_POR_PAGINA, totalEncuestadores);
+        if (desde < 0) desde = 0;
+        if (desde > hasta) desde = hasta;
 
-        request.setAttribute("encuestadores", encuestadores.subList(desde, hasta));
+        List<CoordinadorDTO> encuestadoresPagina = (totalEncuestadores == 0) ? java.util.Collections.emptyList() : encuestadores.subList(desde, hasta);
+        request.setAttribute("encuestadores", encuestadoresPagina);
         request.setAttribute("paginaActual", paginaActual);
         request.setAttribute("totalPaginas", totalPaginas);
 
@@ -79,6 +82,34 @@ public class GestionarEncuestadoresServlet extends HttpServlet {
 
         response.setContentType("application/json");
         String accion = request.getParameter("accion");
+
+        // NUEVO: Cambiar estado individual
+        if ("cambiarEstado".equals(accion)) {
+            String idUsuarioStr = request.getParameter("idUsuario");
+            String nuevoEstadoStr = request.getParameter("nuevoEstado");
+            System.out.println("[DEBUG] Recibido cambiarEstado: idUsuario=" + idUsuarioStr + ", nuevoEstado=" + nuevoEstadoStr);
+            if (idUsuarioStr == null || nuevoEstadoStr == null) {
+                response.getWriter().write("{\"success\": false, \"message\": \"Datos incompletos\"}");
+                return;
+            }
+            try {
+                int idUsuario = Integer.parseInt(idUsuarioStr);
+                int nuevoEstado = Integer.parseInt(nuevoEstadoStr);
+                System.out.println("[DEBUG] Llamando cambiarEstadoUsuario(" + idUsuario + ", " + nuevoEstado + ")");
+                UsuarioDao usuarioDao = new UsuarioDao();
+                boolean actualizado = usuarioDao.cambiarEstadoUsuario(idUsuario, nuevoEstado);
+                System.out.println("[DEBUG] Resultado cambiarEstadoUsuario: " + actualizado);
+                if (actualizado) {
+                    response.getWriter().write("{\"success\": true}");
+                } else {
+                    response.getWriter().write("{\"success\": false, \"message\": \"No se pudo actualizar\"}");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.getWriter().write("{\"success\": false, \"message\": \"Error al procesar\"}");
+            }
+            return;
+        }
 
         if ("guardarCambiosMasivos".equals(accion)) {
             String cambiosJson = request.getParameter("cambios");

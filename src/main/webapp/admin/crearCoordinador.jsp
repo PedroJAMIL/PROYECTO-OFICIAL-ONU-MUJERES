@@ -15,6 +15,11 @@
             --color-btn: #5a9cf8;
             --color-btn-hover: #357ae8;
         }
+        html, body {
+            height: 100%;
+            min-height: 100vh;
+            overflow: auto;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e6f0ff 0%, #b3ccff 100%);
@@ -29,7 +34,7 @@
         .contenedor-principal {
             width: 100%;
             margin: 0;
-            padding: 30px 30px 0 30px;
+            padding: 90px 30px 0 30px;
             box-sizing: border-box;
             min-height: calc(100vh - 70px);
         }
@@ -82,6 +87,8 @@
             transition: all 0.3s ease;
             font-size: 16px;
             font-weight: bold;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.01em;
         }
         .sidebar-content .menu-links a i {
             margin-right: 10px;
@@ -116,10 +123,15 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 800;
-            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
             padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: bold;
+            letter-spacing: 0.01em;
+            z-index: 9999;
         }
         .header-content {
             width: 100%;
@@ -170,6 +182,7 @@
             font-size: 0.9rem;
             user-select: none;
             position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .nav-icon {
             width: 28px;
@@ -217,59 +230,108 @@
             background: #e6f0ff;
             color: #007bff;
         }
-        /* ----------- Formulario ----------- */
+        /* ----------- Formulario Mejorado: más grande, sin scroll ----------- */
         .crear-coordinador-wrapper {
-            background: rgba(255,255,255,0.92);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(52, 152, 219, 0.12), 0 1.5px 8px rgba(52, 152, 219, 0.10);
+            background: rgba(255,255,255,0.98);
+            border-radius: 32px;
+            box-shadow: 0 8px 32px rgba(52, 152, 219, 0.10), 0 1.5px 8px rgba(52, 152, 219, 0.08);
             border: 2px solid #b3ccff;
-            max-width: 440px;
-            margin: 40px auto 32px auto;
-            padding: 36px 32px 32px 32px;
-            text-align: center;
+            width: 100%;
+            max-width: 1050px;
+            margin: 32px auto 32px auto;
+            /* Centrado horizontalmente y más cerca del header */
+            padding: 16px 32px 32px 32px;
+            min-height: unset;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .crear-coordinador-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 36px 60px;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            align-items: start;
+            box-sizing: border-box;
+            background: none;
+            padding-bottom: 32px;
         }
         .crear-coordinador-title {
-            font-size: 1.2em;
+            grid-column: 1 / -1;
+            font-size: 2em;
             font-weight: bold;
-            margin-bottom: 28px;
+            margin-bottom: 0;
+            margin-top: 24px;
             letter-spacing: 1px;
             color: #2166c1;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        .section-separator {
+            grid-column: 1 / -1;
+            border: none;
+            border-top: 2.5px solid #b3ccff;
+            margin: 0 0 16px 0;
+            height: 0;
+            background: none;
         }
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 0;
+            width: 100%;
+            position: relative;
+        }
+        .form-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+            font-size: 1.3em;
+            pointer-events: none;
         }
         .form-input {
             width: 100%;
-            padding: 12px 14px;
-            border: 2px solid #333;
-            border-radius: 6px;
-            font-size: 1em;
-            margin-bottom: 0;
-            background: #fff;
+            padding: 22px 22px 22px 48px;
+            border: 2.5px solid #b3ccff;
+            border-radius: 12px;
+            font-size: 1.3em;
+            background: #f5f7fa;
             box-sizing: border-box;
-            color: #777; /* <-- MODIFICADO: Un color gris más claro para el texto por defecto */
-            font-weight: normal; /* <-- AÑADIDO: Asegura que el texto no esté en negrita */
+            color: #333;
+            font-weight: normal;
+            transition: border 0.2s;
         }
-
-        /* Estilo para el texto de los placeholders en los campos input */
+        .form-input:focus {
+            border: 2.5px solid #3498db;
+            outline: none;
+        }
         .form-input::placeholder {
-            color: #999; /* <-- AÑADIDO: Un color ligeramente más claro para los placeholders */
-            opacity: 1; /* <-- AÑADIDO: Asegura que no haya opacidad reducida no deseada */
-            font-weight: normal; /* <-- AÑADIDO: Asegura que el placeholder no esté en negrita */
+            color: #999;
+            opacity: 1;
+            font-weight: normal;
         }
         .form-btns {
+            grid-column: 1 / -1;
             display: flex;
-            justify-content: space-between;
-            margin-top: 28px;
+            justify-content: center;
+            gap: 36px;
+            margin-top: 24px;
         }
         .btn {
             background: var(--color-btn);
             color: #fff;
             border: none;
-            border-radius: 8px;
-            padding: 12px 38px;
-            font-size: 1em;
-            font-weight: 500;
+            border-radius: 12px;
+            padding: 20px 64px;
+            font-size: 1.3em;
+            font-weight: 600;
             cursor: pointer;
             transition: background 0.2s, box-shadow 0.2s;
             box-shadow: 0 2px 8px rgba(52, 152, 219, 0.10);
@@ -277,16 +339,38 @@
         .btn:hover {
             background: var(--color-btn-hover);
         }
+        @media (max-width: 1100px) {
+            .crear-coordinador-form {
+                max-width: 98vw;
+                gap: 24px 18px;
+            }
+        }
+        @media (max-width: 900px) {
+            .crear-coordinador-form {
+                grid-template-columns: 1fr;
+                gap: 18px;
+                max-width: 98vw;
+            }
+        }
         @media (max-width: 600px) {
             .crear-coordinador-wrapper {
-                padding: 18px 8px;
+                padding: 0;
+                border-radius: 0;
             }
-            .form-btns {
-                flex-direction: column;
-                gap: 14px;
+            .crear-coordinador-form {
+                padding: 0 2vw;
             }
-            .btn {
-                width: 100%;
+        }
+        @media (max-width: 1200px) {
+            .crear-coordinador-wrapper {
+                max-width: 98vw;
+                margin: 16px auto 16px auto;
+            }
+        }
+        @media (max-width: 900px) {
+            .crear-coordinador-wrapper {
+                margin: 8px auto 8px auto;
+                padding: 8px 4vw;
             }
         }
     </style>
@@ -324,7 +408,7 @@
         <div class="sidebar-separator"></div>
         <ul class="menu-links">
             <li><a href="InicioAdminServlet"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-            <li><a href="CrearUsuarioServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
+            <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
             <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
@@ -375,24 +459,31 @@
 <!-- Contenido principal -->
 <main class="contenedor-principal">
     <div class="crear-coordinador-wrapper">
-        <div class="crear-coordinador-title">INGRESE LOS DATOS DEL COORDINADOR INTERNO</div>
-        <form action="${pageContext.request.contextPath}/CrearCoordinadorServlet" method="post">
+        <form class="crear-coordinador-form" action="${pageContext.request.contextPath}/CrearCoordinadorServlet" method="post">
+            <div class="crear-coordinador-title"><i class="fa-solid fa-user-tie"></i> INGRESE LOS DATOS DEL COORDINADOR INTERNO</div>
+            <hr class="section-separator" />
             <div class="form-group">
+                <i class="fa-solid fa-user"></i>
                 <input type="text" name="nombre" class="form-input" placeholder="Nombre" required>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-user"></i>
                 <input type="text" name="apellidopaterno" class="form-input" placeholder="Apellido Paterno" required>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-user"></i>
                 <input type="text" name="apellidomaterno" class="form-input" placeholder="Apellido Materno" required>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-id-card"></i>
                 <input type="text" name="dni" class="form-input" placeholder="DNI" required>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-location-dot"></i>
                 <input type="text" name="direccion" class="form-input" placeholder="Dirección" required>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-city"></i>
                 <select id="idDistritoResidencia" name="idDistrito" class="form-input" required>
                     <option value="">Distrito de Residencia</option>
                     <c:forEach var="distrito" items="${distritos}">
@@ -401,22 +492,26 @@
                 </select>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-envelope"></i>
                 <input type="email" name="correo" class="form-input" placeholder="Correo" required>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-lock"></i>
                 <input type="password" name="contrasenha" class="form-input" placeholder="Contraseña" required>
             </div>
-
-            <div class="crear-coordinador-title">DATOS DEL TRABAJO</div>
+            <div class="crear-coordinador-title"><i class="fa-solid fa-briefcase"></i> DATOS DEL TRABAJO</div>
+            <hr class="section-separator" />
             <div class="form-group">
+                <i class="fa-solid fa-map-location-dot"></i>
                 <select id="idZonaTrabajo" name="idZonaTrabajo" class="form-input" required>
-                    <option value="">Selecion zona de trabajo:</option>
+                    <option value="">Seleccion zona de trabajo:</option>
                     <c:forEach var="zona" items="${zonas}">
                         <option value="${zona.idZona}">${zona.nombreZona}</option>
                     </c:forEach>
                 </select>
             </div>
             <div class="form-group">
+                <i class="fa-solid fa-file-lines"></i>
                 <select id="idFormularioAsignado" name="idFormularioAsignado" class="form-input" required>
                     <option value="">Selecciones formulario a asignar</option>
                     <c:forEach var="formulario" items="${formularios}">
@@ -425,8 +520,8 @@
                 </select>
             </div>
             <div class="form-btns">
-                <button type="button" class="btn" onclick="window.history.back()">Volver</button>
-                <button type="submit" class="btn">Guardar</button>
+                <button type="button" class="btn" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+                <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
             </div>
         </form>
     </div>

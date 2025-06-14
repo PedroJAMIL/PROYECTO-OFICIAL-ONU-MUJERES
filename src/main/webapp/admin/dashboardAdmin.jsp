@@ -351,7 +351,7 @@
         <div class="sidebar-separator"></div>
         <ul class="menu-links">
             <li><a href="InicioAdminServlet"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-            <li><a href="CrearUsuarioServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
+            <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
             <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
@@ -403,17 +403,33 @@
 <main class="contenedor-principal">
     <div class="dashboard-grid">
         <!-- Primer cuadro arriba a la izquierda -->
-        <div class="dashboard-card card-encuestadores">
-            <div class="card-title">Número de encuestadores activos</div>
-            <div class="card-number" id="numEncuestadoresActivos">0</div>
-            <div class="pie-container">
-                <canvas id="pieEncuestadores"></canvas>
+        <div class="dashboard-card card-encuestadores" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 180px; padding: 10px 0 10px 10px;">
+            <div style="flex: 0 0 100px; display: flex; align-items: center; justify-content: center;">
+                <div class="pie-container" style="width: 90px; height: 90px; position: relative;">
+                    <canvas id="pieEncuestadores" width="90" height="90"></canvas>
+                </div>
+            </div>
+            <div style="flex: 1; margin-left: 18px; display: flex; flex-direction: column; align-items: flex-start;">
+                <div class="card-title" style="font-size: 1.1em; margin-bottom: 10px;">Encuestadores</div>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 1em;">
+                    <li style="margin-bottom: 6px; display: flex; align-items: center;">
+                        <span style="display:inline-block;width:14px;height:14px;background:#2ecc71;border-radius:3px;margin-right:7px;"></span>
+                        <b>Activos:</b> <span style="margin-left:4px;">${encuestadoresActivos}</span>
+                    </li>
+                    <li style="display: flex; align-items: center;">
+                        <span style="display:inline-block;width:14px;height:14px;background:#e74c3c;border-radius:3px;margin-right:7px;"></span>
+                        <b>Inactivos:</b> <span style="margin-left:4px;">${encuestadoresDesactivos}</span>
+                    </li>
+                </ul>
             </div>
         </div>
         <!-- Segundo cuadro abajo a la izquierda -->
         <div class="dashboard-card card-coordinadores">
             <div class="card-title">Número de coordinadores internos activos</div>
-            <div class="card-number" id="numCoordinadoresActivos">0</div>
+            <div class="card-number" id="numCoordinadoresActivos">
+                ${coordinadoresActivos}
+            </div>
+            <div class="card-title" style="font-size:0.95em;color:#888;">Desactivados: ${coordinadoresDesactivos}</div>
             <div class="pie-container">
                 <canvas id="pieCoordinadores"></canvas>
             </div>
@@ -428,64 +444,107 @@
     </div>
 </main>
 <script>
-    // Simulación de datos (reemplaza por tus datos reales desde el backend)
-    // Puedes pasar estos datos desde el backend usando JSTL o JSON generado en el JSP
+    // Datos dinámicos desde el backend (asegúrate de que nunca sean null)
     const encuestadores = {
-        activos: 35,
-        desactivados: 10
+        activos: Number('${encuestadoresActivos}' || 0),
+        desactivados: Number('${encuestadoresDesactivados}' || 0)
     };
     const coordinadores = {
-        activos: 8,
-        desactivados: 2
+        activos: Number('${coordinadoresActivos}' || 0),
+        desactivados: Number('${coordinadoresDesactivados}' || 0)
     };
-    // Simulación de usuarios activos por día (últimos 7 días)
-    // Cada elemento es la suma de encuestadores + coordinadores activos ese día
+    // Simulación de usuarios activos por día (puedes reemplazar por datos reales si los tienes)
     const usuariosPorDia = {
         labels: [
             "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"
         ],
-        data: [38, 40, 41, 39, 42, 43, 40]
+        data: [encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos]
     };
 
-    // Mostrar números
     document.addEventListener("DOMContentLoaded", function() {
-        document.getElementById("numEncuestadoresActivos").textContent = encuestadores.activos;
+        // Mostrar números
+        // document.getElementById("numEncuestadoresActivos").textContent = encuestadores.activos; // Eliminado porque ya no existe ese id
         document.getElementById("numCoordinadoresActivos").textContent = coordinadores.activos;
 
-        // Pie Encuestadores
-        new Chart(document.getElementById('pieEncuestadores'), {
+        // === GRÁFICO PASTEL DE ENCUESTADORES ACTIVO/INACTIVO CON NÚMERO CENTRAL ===
+        const ctxEncuestadores = document.getElementById('pieEncuestadores').getContext('2d');
+        const totalEncuestadores = encuestadores.activos + encuestadores.desactivados;
+        const centerTextPlugin = {
+            id: 'centerText',
+            beforeDraw(chart) {
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return;
+                ctx.save();
+                ctx.font = 'bold 1.3em Segoe UI';
+                ctx.fillStyle = '#3498db';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(totalEncuestadores, (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
+                ctx.restore();
+            }
+        };
+        new Chart(ctxEncuestadores, {
             type: 'doughnut',
             data: {
-                labels: ['Activos', 'Desactivados'],
+                labels: [
+                    `Activos (${encuestadores.activos})`,
+                    `Inactivos (${encuestadores.desactivados})`
+                ],
                 datasets: [{
                     data: [encuestadores.activos, encuestadores.desactivados],
                     backgroundColor: ['#2ecc71', '#e74c3c'],
-                    borderWidth: 1
+                    borderWidth: 2
                 }]
             },
             options: {
-                cutout: '70%',
+                cutout: '65%',
                 plugins: {
-                    legend: { display: true, position: 'bottom' }
-                }
-            }
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed;
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percent = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percent}%)`;
+                            }
+                        }
+                    }
+                },
+            plugins: [centerTextPlugin]
         });
+        // El número total ya está en el div #totalEncuestadores, que es transparente y no tapa el canvas.
 
-        // Pie Coordinadores
+        // Pie Coordinadores (opcional: igual que encuestadores)
         new Chart(document.getElementById('pieCoordinadores'), {
             type: 'doughnut',
             data: {
-                labels: ['Activos', 'Desactivados'],
+                labels: [
+                    `Activos (${coordinadores.activos})`,
+                    `Desactivados (${coordinadores.desactivados})`
+                ],
                 datasets: [{
                     data: [coordinadores.activos, coordinadores.desactivados],
                     backgroundColor: ['#2ecc71', '#e74c3c'],
-                    borderWidth: 1
+                    borderWidth: 2
                 }]
             },
             options: {
                 cutout: '70%',
                 plugins: {
-                    legend: { display: true, position: 'bottom' }
+                    legend: { display: true, position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed;
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percent = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percent}%)`;
+                            }
+                        }
+                    },
                 }
             }
         });
@@ -517,6 +576,6 @@
             }
         });
     });
-</script>
+    </script>
 </body>
 </html>

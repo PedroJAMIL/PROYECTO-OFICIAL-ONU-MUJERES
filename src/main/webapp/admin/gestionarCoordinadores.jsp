@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -48,8 +49,14 @@
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         padding: 25px;
-        max-width: 1200px;
+        max-width: 98vw;
+        width: 98vw;
         margin: 20px auto;
+        box-sizing: border-box;
+        /* Centrado perfecto y margen igual a ambos lados */
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
     .tabla-container {
@@ -71,6 +78,14 @@
         padding: 15px;
         text-align: left;
         border-bottom: 1px solid #e0e0e0;
+    }
+
+    th.estado-col {
+        text-align: center;
+    }
+
+    td.estado-col {
+        text-align: center;
     }
 
     th {
@@ -423,22 +438,54 @@
     .paginacion a:hover {
         background-color: #e6f0ff;
     }
+    .btn-cambiar-estado {
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 0;
+        font-weight: bold;
+        cursor: pointer;
+        min-width: 140px;
+        width: 140px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 1rem;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(44,62,80,0.04);
+        text-align: center;
+    }
+    .btn-estado-activo {
+        background-color: #2ecc71; /* Verde para activado */
+    }
+    .btn-estado-inactivo {
+        background-color: #e74c3c; /* Rojo para desactivado */
+    }
+    .filtros-superior {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 18px;
+        margin-bottom: 18px;
+    }
 </style>
 <head>
     <title>Gestión de Coordinadores</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/estilos/encuestador.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/estilos/encuestador/encuestador.css">
 </head>
 <body>
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
 <div id="toast" style="
   visibility: hidden;
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: #2ecc71;
   color: white;
-  text-align: left;
+  text-align: center;
   border-radius: 10px;
   padding: 20px 25px;
   font-size: 1.1rem;
@@ -455,7 +502,7 @@
         <div class="sidebar-separator"></div>
         <ul class="menu-links">
             <li><a href="InicioAdminServlet"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-            <li><a href="CrearUsuarioServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
+            <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
             <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
@@ -492,63 +539,67 @@
 <main class="contenedor-principal">
     <div class="contenedor">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="margin: 0;">Gestión de Coordinadores</h2>
-            <button id="btn-guardar-cambios" class="btn-filtrar" style="background-color: #2ecc71; margin-left: auto;">
-                <i class="fas fa-save"></i> Guardar Cambios
-            </button>
+            <h2 style="margin-bottom: 0.5em;">Gestión de Coordinadores</h2>
         </div>
-        <form method="get" action="GestionarCoordinadoresServlet" class="busqueda-form">
-            <div class="filtros-container">
-                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" class="input-filtro" value="${param.nombre}"/>
-                <select name="estado" class="input-filtro">
+        <div class="filtros-superior">
+            <form method="get" action="GestionarCoordinadoresServlet" style="display: flex; align-items: center; gap: 10px;">
+                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
+                <select name="estado" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
                     <option value="">Todos</option>
-                    <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activos</option>
-                    <option value="1" ${param.estado == '1' ? 'selected' : ''}>Inactivos</option>
+                    <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
+                    <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
                 </select>
                 <button type="submit" class="btn-filtrar"><i class="fas fa-search"></i> Filtrar</button>
-            </div>
-        </form>
+            </form>
+        </div>
         <div class="tabla-container">
             <table>
                 <thead>
                 <tr>
-                    <th>Nombre</th>
+                    <th>NOMBRE</th>
                     <th>DNI</th>
-                    <th>Correo electrónico</th>
-                    <th>Zona</th>
-                    <th>Estado</th>
+                    <th>CORREO ELECTRÓNICO</th>
+                    <th>ZONA</th>
+                    <th class="estado-col">ESTADO</th>
                 </tr>
                 </thead>
                 <tbody>
-                <c:forEach var="coordinador" items="${coordinadores}">
+                <c:choose>
+                  <c:when test="${empty coordinadores}">
                     <tr>
-                        <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
-                        <td>${coordinador.usuario.dni}</td>
-                        <td>${coordinador.credencial.correo}</td>
-                        <td>${coordinador.usuario.idDistrito}</td>
-                        <td>
-                            <div class="dropdown-estado">
-                                <button class="btn-estado" data-id="${coordinador.usuario.idUsuario}" data-estado="${coordinador.usuario.idEstado != null ? coordinador.usuario.idEstado : 2}">
-                  <span class="${coordinador.usuario.idEstado == 2 ? 'estado-activo' : 'estado-inactivo'}">
-                    <i class="fas fa-circle"></i>
-                    ${coordinador.usuario.idEstado == 2 ? 'Activo' : 'Inactivo'}
-                  </span>
-                                    <i class="fa fa-caret-down" style="margin-left:6px;"></i>
-                                </button>
-                                <div class="dropdown-menu-estado" style="display:none;">
-                                    <div class="dropdown-option" data-value="2">
-                                        <span class="estado-activo"><i class="fas fa-circle"></i> Activo</span>
-                                    </div>
-                                    <div class="dropdown-option" data-value="1">
-                                        <span class="estado-inactivo"><i class="fas fa-circle"></i> Inactivo</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
+                      <td colspan="5" style="text-align:center; color:#e74c3c; font-weight:bold; font-size:1.1em; padding:32px 0;">No se encontraron resultados.</td>
                     </tr>
-                </c:forEach>
+                  </c:when>
+                  <c:otherwise>
+                    <c:forEach var="coordinador" items="${coordinadores}">
+                        <c:set var="esActivo" value="${coordinador.usuario.idEstado == 2}" />
+                        <c:set var="textoBtn" value="${esActivo ? 'Activado' : 'Desactivado'}" />
+                        <tr data-id="${coordinador.usuario.idUsuario}">
+                            <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
+                            <td>${coordinador.usuario.dni}</td>
+                            <td>${coordinador.credencial.correo}</td>
+                            <td>${coordinador.usuario.idDistrito}</td>
+                            <td class="estado-col">
+                                <button class="btn-cambiar-estado ${esActivo ? 'btn-estado-activo' : 'btn-estado-inactivo'}" 
+                                        data-id="${coordinador.usuario.idUsuario}"
+                                        data-estado="${coordinador.usuario.idEstado != null ? coordinador.usuario.idEstado : 2}">
+                                    <i class="fas fa-power-off"></i>
+                                    ${textoBtn}
+                                </button>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                  </c:otherwise>
+                </c:choose>
                 </tbody>
             </table>
+        </div>
+        <div id="modal-confirm" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); z-index:9999; align-items:center; justify-content:center;">
+            <div style="background:#fff; padding:32px 28px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; text-align:center;">
+                <div id="modal-msg" style="font-size:1.1rem; margin-bottom:18px;"></div>
+                <button id="modal-confirm-btn" style="background:#2ecc71; color:#fff; border:none; border-radius:8px; padding:8px 22px; font-weight:bold; margin-right:12px; cursor:pointer;">Confirmar</button>
+                <button id="modal-cancel-btn" style="background:#e74c3c; color:#fff; border:none; border-radius:8px; padding:8px 22px; font-weight:bold; cursor:pointer;">Cancelar</button>
+            </div>
         </div>
         <div class="paginacion">
             <c:if test="${paginaActual > 1}">
@@ -565,62 +616,77 @@
 </main>
 
 <script>
-    let cambiosPendientes = {};
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.dropdown-estado').forEach(function(drop) {
-            const btn = drop.querySelector('.btn-estado');
-            const menu = drop.querySelector('.dropdown-menu-estado');
-            const options = menu.querySelectorAll('.dropdown-option');
+        // Botón de cambio de estado
+        let idPendiente = null, nuevoEstadoPendiente = null, btnPendiente = null, filaPendiente = null;
+        document.querySelectorAll('.btn-cambiar-estado').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                e.preventDefault();
+                idPendiente = btn.getAttribute('data-id');
+                const estadoActual = btn.getAttribute('data-estado');
+                nuevoEstadoPendiente = (estadoActual === '2') ? '1' : '2';
+                btnPendiente = btn;
+                filaPendiente = btn.closest('tr');
+                document.getElementById('modal-msg').innerText = (nuevoEstadoPendiente === '2') ?
+                    '¿Está seguro que desea ACTIVAR a este coordinador?' :
+                    '¿Está seguro que desea DESACTIVAR a este coordinador?';
+                document.getElementById('modal-confirm').style.display = 'flex';
             });
-            options.forEach(function(opt) {
-                opt.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const nuevoEstado = this.getAttribute('data-value');
-                    const idUsuario = btn.getAttribute('data-id');
-                    const estadoActual = btn.getAttribute('data-estado');
-                    if (nuevoEstado === estadoActual) {
-                        menu.style.display = 'none';
-                        return;
-                    }
-                    btn.setAttribute('data-estado', nuevoEstado);
-                    btn.innerHTML = (nuevoEstado === '2'
-                            ? '<span class="estado-activo"><i class="fas fa-circle"></i> Activo</span>'
-                            : '<span class="estado-inactivo"><i class="fas fa-circle"></i> Inactivo</span>')
-                        + '<i class="fa fa-caret-down" style="margin-left:6px;"></i>';
-                    cambiosPendientes[idUsuario] = nuevoEstado;
-                    menu.style.display = 'none';
-                });
-            });
-            document.addEventListener('click', function() { menu.style.display = 'none'; });
-            menu.addEventListener('click', function(e) { e.stopPropagation(); });
         });
-        document.getElementById('btn-guardar-cambios').addEventListener('click', function () {
-            if (Object.keys(cambiosPendientes).length === 0) {
-                mostrarToast("No hay cambios por guardar", false);
-                return;
-            }
-            const params = new URLSearchParams();
-            params.append("accion", "guardarCambiosMasivos");
-            params.append("cambios", JSON.stringify(cambiosPendientes));
-            fetch('${pageContext.request.contextPath}/GestionarEncuestadoresServlet', {
+        document.getElementById('modal-cancel-btn').onclick = function() {
+            document.getElementById('modal-confirm').style.display = 'none';
+            idPendiente = null; nuevoEstadoPendiente = null; btnPendiente = null; filaPendiente = null;
+        };
+        document.getElementById('modal-confirm-btn').onclick = function() {
+            if (!idPendiente || !nuevoEstadoPendiente) return;
+            // Guardar valores locales antes de limpiar
+            const idUsuarioLocal = idPendiente;
+            const nuevoEstadoLocal = nuevoEstadoPendiente;
+            fetch('${pageContext.request.contextPath}/GestionarCoordinadoresServlet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString()
+                body: 'accion=cambiarEstado&idUsuario=' + encodeURIComponent(idUsuarioLocal) + '&nuevoEstado=' + encodeURIComponent(nuevoEstadoLocal)
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        mostrarToast("\u00a1Cambios guardados con éxito!", true);
-                        cambiosPendientes = {};
-                    } else {
-                        mostrarToast("Error al guardar cambios", false);
+            .then((res) => {
+                if (!res.ok) throw new Error('HTTP error ' + res.status);
+                return res.json().catch(async () => {
+                    const text = await res.text();
+                    mostrarToast('Respuesta inesperada: ' + text.substring(0, 100), false);
+                    throw new Error('Respuesta no JSON: ' + text);
+                });
+            })
+            .then((data) => {
+                console.log("Respuesta AJAX:", data);
+                if (data.success) {
+                    // Log para depuración
+                    console.log('idUsuarioLocal:', idUsuarioLocal);
+                    const allBtns = document.querySelectorAll('.btn-cambiar-estado');
+                    allBtns.forEach(b => console.log('btn data-id:', b.getAttribute('data-id')));
+                    // Buscar el botón por data-id (comparando como string)
+                    const btn = Array.from(allBtns).find(b => b.getAttribute('data-id') == idUsuarioLocal);
+                    if (!btn) {
+                        mostrarToast('Error: botón no encontrado en DOM (id=' + idUsuarioLocal + ')', false);
+                        return;
                     }
-                })
-                .catch(() => mostrarToast("Error de red al guardar", false));
-        });
+                    btn.setAttribute('data-estado', nuevoEstadoLocal);
+                    btn.innerHTML = '<i class="fas fa-power-off"></i> ' + (nuevoEstadoLocal === '2' ? 'Activado' : 'Desactivado');
+                    btn.classList.toggle('btn-estado-activo', nuevoEstadoLocal === '2');
+                    btn.classList.toggle('btn-estado-inactivo', nuevoEstadoLocal !== '2');
+                    // Actualizar log visual si existe
+                    let logEstado = btn.parentElement.querySelector('span');
+                    if (logEstado) logEstado.innerText = '[idEstado: ' + nuevoEstadoLocal + ']';
+                    mostrarToast('¡Estado actualizado con éxito!', true);
+                } else {
+                    mostrarToast('Error al cambiar estado', false);
+                }
+            })
+            .catch((err) => {
+                console.error("Error en fetch:", err);
+                mostrarToast('Error de red al cambiar estado', false);
+            });
+            document.getElementById('modal-confirm').style.display = 'none';
+            idPendiente = null; nuevoEstadoPendiente = null; btnPendiente = null; filaPendiente = null;
+        };
     });
     function mostrarToast(mensaje, exito) {
         const toast = document.getElementById("toast");
@@ -628,7 +694,9 @@
         toast.style.backgroundColor = exito ? '#2ecc71' : '#e74c3c';
         toast.style.visibility = "visible";
         toast.style.opacity = "1";
-        toast.style.top = "20px";
+        toast.style.top = "32px";
+        toast.style.left = "50%";
+        toast.style.transform = "translateX(-50%)";
         setTimeout(() => {
             toast.style.opacity = "0";
             toast.style.top = "0px";

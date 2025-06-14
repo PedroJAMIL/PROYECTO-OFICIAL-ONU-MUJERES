@@ -57,13 +57,17 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
 
         int totalCoordinadores = coordinadores.size();
         int totalPaginas = (int) Math.ceil((double) totalCoordinadores / COORDINADORES_POR_PAGINA);
+        if (totalPaginas == 0) totalPaginas = 1;
         if (paginaActual < 1) paginaActual = 1;
         if (paginaActual > totalPaginas) paginaActual = totalPaginas;
 
         int desde = (paginaActual - 1) * COORDINADORES_POR_PAGINA;
         int hasta = Math.min(desde + COORDINADORES_POR_PAGINA, totalCoordinadores);
+        if (desde < 0) desde = 0;
+        if (desde > hasta) desde = hasta;
 
-        request.setAttribute("coordinadores", coordinadores.subList(desde, hasta));
+        List<CoordinadorDTO> coordinadoresPagina = (totalCoordinadores == 0) ? java.util.Collections.emptyList() : coordinadores.subList(desde, hasta);
+        request.setAttribute("coordinadores", coordinadoresPagina);
         request.setAttribute("paginaActual", paginaActual);
         request.setAttribute("totalPaginas", totalPaginas);
 
@@ -103,6 +107,34 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
             } catch (Exception e) {
                 e.printStackTrace();
                 response.getWriter().write("{\"success\": false, \"message\": \"Error al procesar cambios\"}");
+            }
+            return;
+        }
+
+        // NUEVO: Cambiar estado individual
+        if ("cambiarEstado".equals(accion)) {
+            String idUsuarioStr = request.getParameter("idUsuario");
+            String nuevoEstadoStr = request.getParameter("nuevoEstado");
+            System.out.println("[DEBUG] Recibido cambiarEstado: idUsuario=" + idUsuarioStr + ", nuevoEstado=" + nuevoEstadoStr);
+            if (idUsuarioStr == null || nuevoEstadoStr == null) {
+                response.getWriter().write("{\"success\": false, \"message\": \"Datos incompletos\"}");
+                return;
+            }
+            try {
+                int idUsuario = Integer.parseInt(idUsuarioStr);
+                int nuevoEstado = Integer.parseInt(nuevoEstadoStr);
+                System.out.println("[DEBUG] Llamando cambiarEstadoUsuario(" + idUsuario + ", " + nuevoEstado + ")");
+                UsuarioDao usuarioDao = new UsuarioDao();
+                boolean actualizado = usuarioDao.cambiarEstadoUsuario(idUsuario, nuevoEstado);
+                System.out.println("[DEBUG] Resultado cambiarEstadoUsuario: " + actualizado);
+                if (actualizado) {
+                    response.getWriter().write("{\"success\": true}");
+                } else {
+                    response.getWriter().write("{\"success\": false, \"message\": \"No se pudo actualizar\"}");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.getWriter().write("{\"success\": false, \"message\": \"Error al procesar\"}");
             }
             return;
         }

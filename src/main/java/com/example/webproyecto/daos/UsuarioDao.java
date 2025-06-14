@@ -86,6 +86,27 @@ public class UsuarioDao {
      * @param idUsuario Si es mayor que 0, filtra por este ID de usuario. Si es 0, trae todos los archivos.
      * @return Una lista de objetos ArchivoCargado.
      */
+
+
+    public int contarEncuestadoresActivos() {
+        String sql = "SELECT COUNT(*) FROM usuario WHERE idRol = 3 AND idEstado = 2";
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    public int contarEncuestadoresDesactivos() {
+        String sql = "SELECT COUNT(*) FROM usuario WHERE idRol = 3 AND idEstado != 2";
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
     public List<com.example.webproyecto.beans.ArchivoCargado> obtenerArchivosCargados(int idUsuario) {
         List<com.example.webproyecto.beans.ArchivoCargado> listaArchivos = new ArrayList<>();
         String sql = "SELECT ac.*, u.nombre AS nombreUsuario, u.apellidopaterno AS apellidoPaternoUsuario " +
@@ -234,7 +255,13 @@ public class UsuarioDao {
 
     public List<CoordinadorDTO> listarEncuestadoresConCorreo() {
         List<CoordinadorDTO> lista = new ArrayList<>();
-        String sql = "SELECT u.*, c.correo FROM usuario u LEFT JOIN credencial c ON u.idUsuario = c.idUsuario WHERE u.idRol = 3 ORDER BY u.idUsuario DESC";
+        String sql = "SELECT u.*, c.correo, z.nombreZona AS zonaDistritoNombre " +
+                "FROM usuario u " +
+                "LEFT JOIN credencial c ON u.idUsuario = c.idUsuario " +
+                "LEFT JOIN distrito d ON u.idDistrito = d.idDistrito " +
+                "LEFT JOIN zona z ON d.idZona = z.idZona " +
+                "WHERE u.idRol = 3 " +
+                "ORDER BY u.idUsuario DESC";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -247,7 +274,7 @@ public class UsuarioDao {
                 u.setDni(rs.getString("dni"));
                 u.setDireccion(rs.getString("direccion"));
                 u.setIdDistrito(rs.getInt("idDistrito"));
-                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo")); // Asegúrate de leerlo aquí también si lo necesitas
+                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo"));
                 u.setIdRol(rs.getInt("idRol"));
                 u.setIdEstado(rs.getInt("idEstado"));
                 u.setFoto(rs.getString("foto"));
@@ -255,7 +282,13 @@ public class UsuarioDao {
                 Credencial c = new Credencial();
                 c.setCorreo(rs.getString("correo"));
 
-                lista.add(new CoordinadorDTO(u, c));
+                CoordinadorDTO dto = new CoordinadorDTO(u, c);
+                String zonaNombre = rs.getString("zonaDistritoNombre");
+                if (zonaNombre != null && zonaNombre.toLowerCase().startsWith("zona ")) {
+                    zonaNombre = zonaNombre.substring(5).trim();
+                }
+                dto.setZonaTrabajoNombre(zonaNombre);
+                lista.add(dto);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -333,12 +366,16 @@ public class UsuarioDao {
 
     public boolean cambiarEstadoUsuario(int idUsuario, int nuevoEstado) {
         String sql = "UPDATE usuario SET idEstado = ? WHERE idUsuario = ?";
+        System.out.println("[DEBUG] SQL: " + sql + " | idUsuario=" + idUsuario + ", nuevoEstado=" + nuevoEstado);
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, nuevoEstado);
             ps.setInt(2, idUsuario);
-            return ps.executeUpdate() > 0;
+            int rows = ps.executeUpdate();
+            System.out.println("[DEBUG] Filas afectadas: " + rows);
+            return rows > 0;
         } catch (SQLException e) {
+            System.err.println("[ERROR] cambiarEstadoUsuario: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -534,7 +571,12 @@ public class UsuarioDao {
 
     public List<CoordinadorDTO> listarCoordinadoresConCorreo() {
         List<CoordinadorDTO> lista = new ArrayList<>();
-        String sql = "SELECT u.*, c.correo FROM usuario u LEFT JOIN credencial c ON u.idUsuario = c.idUsuario WHERE u.idRol = 2 ORDER BY u.idUsuario DESC";
+        String sql = "SELECT u.*, c.correo, z.nombreZona AS zonaTrabajoNombre " +
+                "FROM usuario u " +
+                "LEFT JOIN credencial c ON u.idUsuario = c.idUsuario " +
+                "LEFT JOIN zona z ON u.idZonaTrabajo = z.idZona " +
+                "WHERE u.idRol = 2 " +
+                "ORDER BY u.idUsuario DESC";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -547,7 +589,7 @@ public class UsuarioDao {
                 u.setDni(rs.getString("dni"));
                 u.setDireccion(rs.getString("direccion"));
                 u.setIdDistrito(rs.getInt("idDistrito"));
-                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo")); // Asegúrate de leerlo aquí también si lo necesitas
+                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo"));
                 u.setIdRol(rs.getInt("idRol"));
                 u.setIdEstado(rs.getInt("idEstado"));
                 u.setFoto(rs.getString("foto"));
@@ -555,7 +597,13 @@ public class UsuarioDao {
                 Credencial c = new Credencial();
                 c.setCorreo(rs.getString("correo"));
 
-                lista.add(new CoordinadorDTO(u, c));
+                CoordinadorDTO dto = new CoordinadorDTO(u, c);
+                String zonaNombre = rs.getString("zonaTrabajoNombre");
+                if (zonaNombre != null && zonaNombre.toLowerCase().startsWith("zona ")) {
+                    zonaNombre = zonaNombre.substring(5).trim();
+                }
+                dto.setZonaTrabajoNombre(zonaNombre);
+                lista.add(dto);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -613,4 +661,23 @@ public class UsuarioDao {
         }
     }
 
+    public int contarCoordinadoresActivos() {
+        String sql = "SELECT COUNT(*) FROM usuario WHERE idRol = 2 AND idEstado = 2";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    public int contarCoordinadoresDesactivos() {
+        String sql = "SELECT COUNT(*) FROM usuario WHERE idRol = 2 AND idEstado != 2";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
 }
