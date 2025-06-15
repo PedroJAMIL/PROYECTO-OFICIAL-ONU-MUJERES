@@ -1,7 +1,7 @@
 package com.example.webproyecto.servlets.administrador;
 
 import com.example.webproyecto.daos.UsuarioDao;
-import com.example.webproyecto.dtos.CoordinadorDTO;
+import com.example.webproyecto.dtos.EncuestadorDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -38,7 +38,7 @@ public class GestionarEncuestadoresServlet extends HttpServlet {
             paginaActual = Integer.parseInt(request.getParameter("pagina"));
         } catch (Exception ignored) {}
 
-        List<CoordinadorDTO> encuestadores = usuarioDao.listarEncuestadoresConCorreo();
+        List<EncuestadorDTO> encuestadores = usuarioDao.listarEncuestadoresConCorreo();
 
         if (nombreFiltro != null && !nombreFiltro.trim().isEmpty()) {
             String filtroLower = nombreFiltro.trim().toLowerCase();
@@ -68,7 +68,7 @@ public class GestionarEncuestadoresServlet extends HttpServlet {
         if (desde < 0) desde = 0;
         if (desde > hasta) desde = hasta;
 
-        List<CoordinadorDTO> encuestadoresPagina = (totalEncuestadores == 0) ? java.util.Collections.emptyList() : encuestadores.subList(desde, hasta);
+        List<EncuestadorDTO> encuestadoresPagina = (totalEncuestadores == 0) ? java.util.Collections.emptyList() : encuestadores.subList(desde, hasta);
         request.setAttribute("encuestadores", encuestadoresPagina);
         request.setAttribute("paginaActual", paginaActual);
         request.setAttribute("totalPaginas", totalPaginas);

@@ -17,8 +17,10 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        System.out.println("[DEBUG] Entrando a doGet de GestionarCoordinadoresServlet");
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("idUsuario") == null) {
+            System.out.println("[DEBUG] Sesión nula o sin idUsuario, redirigiendo a login.jsp");
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
@@ -26,6 +28,7 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
         Object idrolObj = session.getAttribute("idrol");
         int idrol = (idrolObj instanceof Integer) ? (Integer) idrolObj : Integer.parseInt(idrolObj.toString());
         if (idrol != 1) {
+            System.out.println("[DEBUG] idrol != 1, redirigiendo a login.jsp");
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
@@ -39,6 +42,7 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
         } catch (Exception ignored) {}
 
         List<CoordinadorDTO> coordinadores = usuarioDao.listarCoordinadoresConCorreo();
+        System.out.println("[DEBUG] coordinadores.size()=" + (coordinadores != null ? coordinadores.size() : "null"));
 
         if (nombreFiltro != null && !nombreFiltro.trim().isEmpty()) {
             String filtroLower = nombreFiltro.trim().toLowerCase();
@@ -67,11 +71,14 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
         if (desde > hasta) desde = hasta;
 
         List<CoordinadorDTO> coordinadoresPagina = (totalCoordinadores == 0) ? java.util.Collections.emptyList() : coordinadores.subList(desde, hasta);
+        System.out.println("[DEBUG] coordinadoresPagina.size()=" + (coordinadoresPagina != null ? coordinadoresPagina.size() : "null"));
         request.setAttribute("coordinadores", coordinadoresPagina);
         request.setAttribute("paginaActual", paginaActual);
         request.setAttribute("totalPaginas", totalPaginas);
 
+        System.out.println("[DEBUG] Antes de forward a gestionarCoordinadores.jsp");
         request.getRequestDispatcher("admin/gestionarCoordinadores.jsp").forward(request, response);
+        System.out.println("[DEBUG] Después de forward (esto no debería verse)");
     }
 
     @Override

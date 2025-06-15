@@ -38,26 +38,29 @@
   .contenedor-principal, .main-content {
     width: 100%;
     margin: 0;
-    padding: 30px 0 0 0;
+    padding: 0;
     box-sizing: border-box;
+    background: #fff;
+    min-height: calc(100vh - 56.8px); /* cubre toda la pantalla menos el header */
   }
 
   /* ---- Estilos específicos para la tabla (como antes) ---- */
   .contenedor {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 25px;
-    max-width: 98vw;
-    width: 98vw;
-    margin: 20px auto;
+    background: #fff;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    width: 100vw;
+    max-width: 100vw;
+    margin: 0;
+    padding: 32px 5vw 24px 5vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
     box-sizing: border-box;
-    /* Centrado perfecto y margen igual a ambos lados */
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
   }
-
   .tabla-container {
     overflow-x: auto;
     margin-top: 20px;
@@ -65,6 +68,8 @@
 
   table {
     width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
     border-collapse: separate;
     border-spacing: 0;
     background: #fff;
@@ -380,22 +385,56 @@
     font-size: 14px;
     min-width: 180px;
   }
-  .btn-filtrar {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 14px;
-    cursor: pointer;
+  .input-busqueda, .select-zona {
+    height: 40px;
+    min-width: 140px;
+    padding: 8px 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-right: 0;
+    background: #fff;
+    color: #333;
+    outline: none;
+    transition: border 0.2s;
     display: flex;
     align-items: center;
+  }
+  .input-busqueda:focus, .select-zona:focus {
+    border: 1.5px solid #2196f3;
+  }
+  .btn-filtrar, .btn-excel {
+    height: 40px;
+    min-width: 140px;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 6px;
+    box-sizing: border-box;
+  }
+  .btn-filtrar {
+    background: #2196f3;
+    color: #fff;
+  }
+  .btn-excel {
+    background: #219653;
+    color: #fff;
   }
   .btn-filtrar:hover {
-    background-color: #2980b9;
+    background: #1769aa;
   }
+  .btn-excel:hover {
+    background: #17693a;
+  }
+
   .paginacion {
     margin-top: 24px;
     display: flex;
@@ -485,7 +524,6 @@
       <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
       <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
       <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
-      <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
       <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
     </ul>
   </div>
@@ -521,54 +559,59 @@
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h2 style="margin-bottom: 0.5em;">Gestión de Encuestadores</h2>
     </div>
-    <div class="filtros-superior">
-        <form method="get" action="GestionarEncuestadoresServlet" style="display: flex; align-items: center; gap: 10px;">
-            <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
-            <select name="estado" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
-                <option value="">Todos</option>
-                <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
-                <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
-            </select>
-            <button type="submit" class="btn-filtrar"><i class="fas fa-search"></i> Filtrar</button>
-        </form>
+    <div style="display: flex; justify-content: flex-start; margin-bottom: 24px;">
+      <form method="get" action="GestionarEncuestadoresServlet" style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" class="input-busqueda" />
+        <select name="estado" class="select-zona">
+          <option value="">Todos</option>
+          <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
+          <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
+        </select>
+        <button type="submit" class="btn-filtrar">
+          <i class="fa fa-search"></i> Filtrar
+        </button>
+        <button type="submit" formaction="GenerarReportesServlet" class="btn-excel">
+          <i class="fa fa-file-excel-o" style="margin-right: 6px;"></i> Excel
+        </button>
+      </form>
     </div>
     <div class="tabla-container">
       <table>
         <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>DNI</th>
-          <th>Correo electrónico</th>
-          <th>Zona</th>
-          <th class="estado-col">Estado</th>
-        </tr>
+          <tr>
+            <th>Nombre</th>
+            <th>DNI</th>
+            <th>Correo electrónico</th>
+            <th>Zona</th>
+            <th class="estado-col">Estado</th>
+          </tr>
         </thead>
         <tbody>
-        <c:choose>
-          <c:when test="${empty encuestadores}">
-            <tr>
-              <td colspan="5" style="text-align:center; color:#e74c3c; font-weight:bold; font-size:1.1em; padding:32px 0;">No se encontraron resultados.</td>
-            </tr>
-          </c:when>
-          <c:otherwise>
-            <c:forEach var="encuestador" items="${encuestadores}">
-              <tr data-id="${encuestador.usuario.idUsuario}">
-                <td>${encuestador.usuario.nombre} ${encuestador.usuario.apellidopaterno} ${encuestador.usuario.apellidomaterno}</td>
-                <td>${encuestador.usuario.dni}</td>
-                <td>${encuestador.credencial.correo}</td>
-                <td>${encuestador.zonaTrabajoNombre}</td>
-                <td class="estado-col">
-                  <button class="btn-cambiar-estado ${encuestador.usuario.idEstado == 2 ? 'btn-estado-activo' : 'btn-estado-inactivo'}"
-                          data-id="${encuestador.usuario.idUsuario}"
-                          data-estado="${encuestador.usuario.idEstado != null ? encuestador.usuario.idEstado : 2}">
-                    <i class="fas fa-power-off"></i>
-                    ${encuestador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
-                  </button>
-                </td>
+          <c:choose>
+            <c:when test="${empty encuestadores}">
+              <tr>
+                <td colspan="5" style="text-align:center; color:#e74c3c; font-weight:bold; font-size:1.1em; padding:32px 0;">No se encontraron resultados.</td>
               </tr>
-            </c:forEach>
-          </c:otherwise>
-        </c:choose>
+            </c:when>
+            <c:otherwise>
+              <c:forEach var="encuestador" items="${encuestadores}">
+                <tr data-id="${encuestador.usuario.idUsuario}">
+                  <td>${encuestador.usuario.nombre} ${encuestador.usuario.apellidopaterno} ${encuestador.usuario.apellidomaterno}</td>
+                  <td>${encuestador.usuario.dni}</td>
+                  <td>${encuestador.credencial.correo}</td>
+                  <td>${encuestador.zonaTrabajoNombre}</td>
+                  <td class="estado-col">
+                    <button class="btn-cambiar-estado ${encuestador.usuario.idEstado == 2 ? 'btn-estado-activo' : 'btn-estado-inactivo'}"
+                            data-id="${encuestador.usuario.idUsuario}"
+                            data-estado="${encuestador.usuario.idEstado != null ? encuestador.usuario.idEstado : 2}">
+                      <i class="fas fa-power-off"></i>
+                      ${encuestador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
+                    </button>
+                  </td>
+                </tr>
+              </c:forEach>
+            </c:otherwise>
+          </c:choose>
         </tbody>
       </table>
     </div>

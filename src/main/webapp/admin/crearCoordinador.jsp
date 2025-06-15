@@ -18,25 +18,26 @@
         html, body {
             height: 100%;
             min-height: 100vh;
-            overflow: auto;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e6f0ff 0%, #b3ccff 100%);
+            background: #fff !important;
             margin: 0;
             padding: 0;
             color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .menu-toggle:checked ~ .sidebar { left: 0; }
         .menu-toggle:checked ~ .overlay { display: block; opacity: 1; }
         /* Fix: NO empujar el contenido al abrir sidebar */
         /* .menu-toggle:checked ~ .contenedor-principal { margin-left: 280px; } */
         .contenedor-principal {
-            width: 100%;
+            width: 100vw;
+            min-height: 100vh;
             margin: 0;
-            padding: 90px 30px 0 30px;
+            padding: 0;
+            background: #fff;
             box-sizing: border-box;
-            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center; /* Centra verticalmente */
+            justify-content: center;
         }
         /* Sidebar y header igual que dashboardAdmin.jsp */
         .sidebar {
@@ -232,145 +233,145 @@
         }
         /* ----------- Formulario Mejorado: más grande, sin scroll ----------- */
         .crear-coordinador-wrapper {
-            background: rgba(255,255,255,0.98);
-            border-radius: 32px;
-            box-shadow: 0 8px 32px rgba(52, 152, 219, 0.10), 0 1.5px 8px rgba(52, 152, 219, 0.08);
-            border: 2px solid #b3ccff;
-            width: 100%;
-            max-width: 1050px;
-            margin: 32px auto 32px auto;
-            /* Centrado horizontalmente y más cerca del header */
-            padding: 16px 32px 32px 32px;
-            min-height: unset;
-            box-sizing: border-box;
+            background: #fff;
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
+            width: 100vw;
+            max-width: 100vw;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            align-items: center; /* Centra verticalmente */
             justify-content: center;
         }
         .crear-coordinador-form {
+            background: #fff;
+            box-shadow: none;
+            border-radius: 0;
+            border: none;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 36px 48px 36px 48px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 36px 60px;
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
+            gap: 26px 36px;
             align-items: start;
-            box-sizing: border-box;
-            background: none;
-            padding-bottom: 32px;
+            min-height: unset;
+            margin-top: 38px;
         }
-        .crear-coordinador-title {
+        .form-section {
+            display: contents;
+        }
+        .section-title {
             grid-column: 1 / -1;
-            font-size: 2em;
+            margin-bottom: 12px;
+            font-size: 1.1em;
             font-weight: bold;
-            margin-bottom: 0;
-            margin-top: 24px;
-            letter-spacing: 1px;
-            color: #2166c1;
-            text-align: center;
+            color: #222;
+            letter-spacing: 0.5px;
+            text-align: left;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
+            gap: 8px;
         }
-        .section-separator {
-            grid-column: 1 / -1;
-            border: none;
-            border-top: 2.5px solid #b3ccff;
-            margin: 0 0 16px 0;
-            height: 0;
-            background: none;
+        .section-title i {
+            color: #888;
+            font-size: 1.1em;
+            margin-right: 4px;
         }
         .form-group {
-            margin-bottom: 0;
+            margin-bottom: 12px;
             width: 100%;
             position: relative;
         }
+        .form-btns {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 18px;
+            margin-top: 32px;
+            justify-content: center;
+        }
         .form-group i {
             position: absolute;
-            left: 16px;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: #3498db;
-            font-size: 1.3em;
+            color: #bbb;
+            font-size: 1em;
             pointer-events: none;
         }
         .form-input {
             width: 100%;
-            padding: 22px 22px 22px 48px;
-            border: 2.5px solid #b3ccff;
-            border-radius: 12px;
-            font-size: 1.3em;
-            background: #f5f7fa;
-            box-sizing: border-box;
+            padding: 16px 16px 16px 44px;
+            border: 2.2px solid #b3ccff;
+            border-radius: 8px;
+            font-size: 1.11em;
+            background: #fff;
             color: #333;
             font-weight: normal;
             transition: border 0.2s;
+            box-sizing: border-box;
         }
         .form-input:focus {
             border: 2.5px solid #3498db;
             outline: none;
         }
         .form-input::placeholder {
-            color: #999;
+            color: #aaa;
             opacity: 1;
             font-weight: normal;
         }
         .form-btns {
-            grid-column: 1 / -1;
             display: flex;
+            gap: 18px;
+            margin-top: 32px;
             justify-content: center;
-            gap: 36px;
-            margin-top: 24px;
         }
         .btn {
-            background: var(--color-btn);
+            background: #3498db;
             color: #fff;
             border: none;
-            border-radius: 12px;
-            padding: 20px 64px;
-            font-size: 1.3em;
+            border-radius: 6px;
+            padding: 12px 32px;
+            font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.10);
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .btn:hover {
-            background: var(--color-btn-hover);
+            background: #2166c1;
         }
-        @media (max-width: 1100px) {
-            .crear-coordinador-form {
-                max-width: 98vw;
-                gap: 24px 18px;
-            }
+        .btn i {
+            color: #fff;
+            font-size: 1em;
+            margin-right: 2px;
         }
-        @media (max-width: 900px) {
-            .crear-coordinador-form {
-                grid-template-columns: 1fr;
-                gap: 18px;
-                max-width: 98vw;
-            }
-        }
-        @media (max-width: 600px) {
-            .crear-coordinador-wrapper {
-                padding: 0;
-                border-radius: 0;
-            }
-            .crear-coordinador-form {
-                padding: 0 2vw;
-            }
+        .crear-coordinador-title, .section-separator {
+            display: none;
         }
         @media (max-width: 1200px) {
-            .crear-coordinador-wrapper {
+            .crear-coordinador-form {
                 max-width: 98vw;
-                margin: 16px auto 16px auto;
+                padding: 24px 2vw 24px 2vw;
+                gap: 18px 18px;
             }
         }
         @media (max-width: 900px) {
-            .crear-coordinador-wrapper {
-                margin: 8px auto 8px auto;
-                padding: 8px 4vw;
+            .crear-coordinador-form {
+                margin-top: 18px;
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 0 4vw 32px 4vw;
+            }
+            .form-group {
+                margin-bottom: 8px;
             }
         }
     </style>
@@ -460,8 +461,7 @@
 <main class="contenedor-principal">
     <div class="crear-coordinador-wrapper">
         <form class="crear-coordinador-form" action="${pageContext.request.contextPath}/CrearCoordinadorServlet" method="post">
-            <div class="crear-coordinador-title"><i class="fa-solid fa-user-tie"></i> INGRESE LOS DATOS DEL COORDINADOR INTERNO</div>
-            <hr class="section-separator" />
+            <div class="section-title"><i class="fa-solid fa-user"></i>Datos Personales</div>
             <div class="form-group">
                 <i class="fa-solid fa-user"></i>
                 <input type="text" name="nombre" class="form-input" placeholder="Nombre" required>
@@ -499,10 +499,9 @@
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" name="contrasenha" class="form-input" placeholder="Contraseña" required>
             </div>
-            <div class="crear-coordinador-title"><i class="fa-solid fa-briefcase"></i> DATOS DEL TRABAJO</div>
-            <hr class="section-separator" />
+            <div class="section-title"><i class="fa-solid fa-briefcase"></i>Datos de Trabajo</div>
             <div class="form-group">
-                <i class="fa-solid fa-map-location-dot"></i>
+                <i class="fa-solid fa-map-marker-alt"></i>
                 <select id="idZonaTrabajo" name="idZonaTrabajo" class="form-input" required>
                     <option value="">Seleccion zona de trabajo:</option>
                     <c:forEach var="zona" items="${zonas}">
@@ -511,7 +510,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <i class="fa-solid fa-file-lines"></i>
+                <i class="fa-solid fa-file-alt"></i>
                 <select id="idFormularioAsignado" name="idFormularioAsignado" class="form-input" required>
                     <option value="">Selecciones formulario a asignar</option>
                     <c:forEach var="formulario" items="${formularios}">
