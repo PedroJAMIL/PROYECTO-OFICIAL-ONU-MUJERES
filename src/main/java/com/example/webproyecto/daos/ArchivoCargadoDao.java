@@ -1,18 +1,8 @@
 package com.example.webproyecto.daos;
 
-import com.example.webproyecto.beans.ArchivoCargado; // Importa tu bean ArchivoCargado
-// No importamos Usuario aquí, ya que el DAO es solo para ArchivoCargado
-// No importamos com.example.webproyecto.utils.Conexion; si no la vamos a usar aquí
+import com.example.webproyecto.beans.ArchivoCargado;
 
-import java.sql.Connection;
-import java.sql.DriverManager; // Necesario para la conexión directa
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp; // Para manejar LocalDateTime con la base de datos
-import java.sql.Types;     // Para manejar valores NULL
-import java.time.LocalDateTime; // Para el tipo de fecha en ArchivoCargado
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,11 +116,19 @@ public class ArchivoCargadoDao {
                         archivo.setIdFormularioAsociado(idFormulario);
                     }
 
-                    // Si quisieras el nombre del usuario en el objeto ArchivoCargado, necesitarías
-                    // modificar el bean ArchivoCargado para incluir esos campos, o crear un DTO.
-                    // Por ahora, solo los seleccionamos en la consulta.
-                    // String nombreUsuario = rs.getString("nombreUsuario");
-                    // String apellidoPaternoUsuario = rs.getString("apellidoPaternoUsuario");
+                    // NUEVO: Asignar el nombre completo del usuario que subió el archivo
+                    String nombreUsuario = rs.getString("nombreUsuario");
+                    String apellidoPaternoUsuario = rs.getString("apellidoPaternoUsuario");
+                    archivo.setNombreUsuarioQueCargo(nombreUsuario + " " + apellidoPaternoUsuario);
+
+                    // NUEVO: Asignar el tipo de archivo (por extensión)
+                    String nombreArchivo = rs.getString("nombreArchivoOriginal");
+                    String tipoArchivo = "";
+                    int i = nombreArchivo.lastIndexOf('.');
+                    if (i > 0) {
+                        tipoArchivo = nombreArchivo.substring(i + 1).toUpperCase();
+                    }
+                    archivo.setTipoArchivo(tipoArchivo);
 
                     listaArchivos.add(archivo);
                 }
@@ -151,6 +149,34 @@ public class ArchivoCargadoDao {
     public List<ArchivoCargado> obtenerTodosLosArchivosCargados() {
         return obtenerArchivosCargados(0); // Llama al método anterior con 0 para no filtrar por usuario
     }
+
+    public ArchivoCargado obtenerArchivoPorId(int idArchivoCargado) {
+    ArchivoCargado archivo = null;
+    String sql = "SELECT * FROM archivocargado WHERE idArchivoCargado = ?";
+    try (Connection conn = DriverManager.getConnection(url, user, pass);
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, idArchivoCargado);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                archivo = new ArchivoCargado();
+                archivo.setIdArchivoCargado(rs.getInt("idArchivoCargado"));
+                archivo.setNombreArchivoOriginal(rs.getString("nombreArchivoOriginal"));
+                archivo.setRutaGuardado(rs.getString("rutaGuardado"));
+                Timestamp timestamp = rs.getTimestamp("fechaCarga");
+                    if (timestamp != null) {
+                        archivo.setFechaCarga(timestamp.toLocalDateTime());
+                    }
+                archivo.setIdUsuarioQueCargo(rs.getInt("idUsuarioQueCargo"));
+                archivo.setEstadoProcesamiento(rs.getString("estadoProcesamiento"));
+                archivo.setMensajeProcesamiento(rs.getString("mensajeProcesamiento"));
+                archivo.setIdFormularioAsociado(rs.getInt("idFormularioAsociado"));
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return archivo;
+}
 
     // Puedes añadir más métodos según sea necesario (ej: actualizar estado de procesamiento, eliminar, etc.)
 }

@@ -1,22 +1,22 @@
 package com.example.webproyecto.servlets.coordinador;
 
 // Importaciones existentes
+
+import com.example.webproyecto.beans.ArchivoCargado;
+import com.example.webproyecto.daos.ArchivoCargadoDao;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
 
 import java.io.IOException;
-import java.io.InputStream; // Para leer el archivo subido
-import java.nio.file.Files; // Para escribir el archivo en el sistema de ficheros
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption; // Para copiar el InputStream a un archivo
-
-// Nuevas importaciones para el manejo del archivo cargado y el DAO
-import com.example.webproyecto.beans.ArchivoCargado; // Tu bean de archivo cargado
-import com.example.webproyecto.daos.ArchivoCargadoDao; // Tu DAO de archivo cargado
-import java.time.LocalDateTime; // Para la fecha de carga
-import java.util.List; // Para listar los archivos cargados
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @WebServlet(name = "CargarArchivosServlet", value = "/CargarArchivosServlet")
 @MultipartConfig( // ¡Importante para manejar la subida de archivos!
@@ -75,7 +75,14 @@ public class CargarArchivosServlet extends HttpServlet {
             String nombreArchivoOriginal = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
             // Evitar problemas con nombres de archivo que contengan barras o caracteres especiales
             nombreArchivoOriginal = nombreArchivoOriginal.replaceAll("[^a-zA-Z0-9.\\-_]", "_");
-// tener en cuenta eso para guardarlo en la nube
+            // tener en cuenta eso para guardarlo en la nube
+            // VALIDACIÓN DE EXTENSIÓN
+            if (!nombreArchivoOriginal.toLowerCase().endsWith(".xlsx")) {
+                request.getSession().setAttribute("mensajeErrorFormato", "Solo se permiten archivos Excel (.xlsx)");
+                response.sendRedirect(request.getContextPath() + "/CargarArchivosServlet");
+                return;
+            }
+
             String uploadDir = getServletContext().getRealPath("/uploads"); // Ruta donde se guardarán los archivos
             // Asegurarse de que el directorio de subida exista
             Path uploadPath = Paths.get(uploadDir);

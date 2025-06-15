@@ -11,6 +11,8 @@ public class ArchivoCargado {
     private String estadoProcesamiento; // Ej: "EXITOSO", "CON_ERRORES", "PENDIENTE"
     private String mensajeProcesamiento; // Detalles del procesamiento (ej: errores)
     private Integer idFormularioAsociado; // Opcional: si la carga crea/modifica un Formulario
+    private String nombreUsuarioQueCargo;
+    private String tipoArchivo;
 
     // Constructor vacío (necesario para frameworks/mapeos)
     public ArchivoCargado() {
@@ -93,5 +95,21 @@ public class ArchivoCargado {
 
     public void setIdFormularioAsociado(Integer idFormularioAsociado) {
         this.idFormularioAsociado = idFormularioAsociado;
+    }
+
+    public String getNombreUsuarioQueCargo() {
+        return nombreUsuarioQueCargo;
+    }
+
+    public void setNombreUsuarioQueCargo(String nombreUsuarioQueCargo) {
+        this.nombreUsuarioQueCargo = nombreUsuarioQueCargo;
+    }
+
+    public String getTipoArchivo() {
+        return tipoArchivo;
+    }
+
+    public void setTipoArchivo(String tipoArchivo) {
+        this.tipoArchivo = tipoArchivo;
     }
 }
