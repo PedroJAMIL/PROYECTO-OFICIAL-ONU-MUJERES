@@ -7,6 +7,10 @@ public class CoordinadorDTO {
     private Usuario usuario;
     private Credencial credencial;
     private String zonaTrabajoNombre;
+    private String distritoNombre;
+
+    public String getDistritoNombre() { return distritoNombre; }
+    public void setDistritoNombre(String distritoNombre) { this.distritoNombre = distritoNombre; }
 
     public String getZonaTrabajoNombre() {
         return zonaTrabajoNombre;

@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: cs
-  Date: 6/06/2025
-  Time: 16:06
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -13,6 +6,7 @@
 <head>
   <title>Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --color-primary: #3498db;
@@ -24,10 +18,62 @@
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--color-bg);
+      background: linear-gradient(135deg, #e6f0ff 0%, #b3ccff 100%);
       margin: 0;
       padding: 0;
       color: #333;
+    }
+    .dashboard-wrapper {
+      background: rgba(255,255,255,0.85);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(52, 152, 219, 0.12), 0 1.5px 8px rgba(52, 152, 219, 0.10);
+      border: 2px solid #b3ccff;
+      padding: 36px 32px;
+      max-width: 1200px;
+      margin: 40px auto;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .dashboard-card {
+      background: var(--color-card-inner);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(52, 152, 219, 0.08);
+      border: 1.5px solid #c8dbff;
+      padding: 24px;
+      text-align: center;
+    }
+    .pie-container, .bar-container {
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+    }
+    .contenedor-principal {
+      padding: 32px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 32px;
+    }
+    .dashboard-card {
+      background: #ffffffcc;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    .card-title {
+      font-weight: bold;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+    }
+    canvas {
+      width: 100% !important;
+      max-height: 300px;
     }
     /* Sidebar estilo unificado (igual que admin) */
     .sidebar {
@@ -106,6 +152,16 @@
       transition: opacity 0.3s ease;
       z-index: 2000;
     }
+    .styled-select {
+      background: #e6f0ff;
+      border: 1.5px solid #3498db;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 1em;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
     .menu-toggle:checked ~ .overlay {
       opacity: 1;
       visibility: visible;
@@ -341,11 +397,12 @@
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
 
 <!-- Sidebar -->
+
 <div class="sidebar">
   <div class="sidebar-content">
     <div class="sidebar-separator"></div>
     <ul class="menu-links">
-      <li><a href="DashboardServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
+      <li><a href="InicioCoordinadorServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
       <li><a href="GestionEncuestadoresServlet"><i class="fa-solid fa-users"></i> Gestionar Encuestadores</a></li>
       <li><a href="GestionarFormulariosServlet"><i class="fa-solid fa-file-alt"></i> Gestionar Formularios</a></li>
       <li><a href="CargarArchivosServlet"><i class="fa-solid fa-upload"></i> Cargar Archivos</a></li>
@@ -395,39 +452,145 @@
 
 <!-- Contenido principal -->
 <main class="contenedor-principal">
-  <div class="dashboard-grid">
-    <div class="dashboard-card card-encuestador">
-      Tabla de encuestas por encuestador
+  <h2>Dashboard de Zona: ${sessionScope.nombre}</h2>
+  <!-- Filtro de distrito -->
+  <!-- Filtro de distrito -->
+  <div style="margin-bottom: 20px;">
+    <label for="filtroDistrito" style="font-weight: bold; margin-right: 12px;">Filtrar por distrito:</label>
+    <select id="filtroDistrito" class="dashboard-select styled-select">
+      <option value="todos">Todos</option>
+    </select>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
+
+    <!-- Gráfico Pastel Zona -->
+    <div class="dashboard-card">
+      <div class="card-title">Encuestadores en la zona (activos vs inactivos)</div>
+      <canvas id="graficoPastelZona"></canvas>
     </div>
-    <div class="dashboard-card card-grafico-distrito">
-      <select class="dashboard-select">
-        <option>Zonas</option>
-        <option>Zona 1</option>
-        <option>Zona 2</option>
-      </select>
-      Gráfico de encuestados por Distrito
-      <div class="fake-bar-chart">
-        <div class="fake-bar fake-bar1"></div>
-        <div class="fake-bar fake-bar2"></div>
-        <div class="fake-bar fake-bar3"></div>
-        <div class="fake-bar fake-bar4"></div>
-        <div class="fake-bar fake-bar5"></div>
-      </div>
+
+    <!-- Gráfico dinámico por distrito -->
+    <div class="dashboard-card">
+      <div class="card-title" id="tituloGraficoDistrito">Distribución por distrito (activos vs inactivos)</div>
+      <canvas id="graficoPorDistrito"></canvas>
     </div>
-    <div class="dashboard-card card-dato">
-      Dato
+
+    <!-- Gráfico de línea -->
+    <div class="dashboard-card">
+      <div class="card-title">Evolución mensual de encuestadores</div>
+      <canvas id="graficoLinea"></canvas>
     </div>
-    <div class="dashboard-card card-otros">
-      Otros gráficos
-    </div>
-    <div class="dashboard-card card-pastel">
-      Gráfico pastel de encuestador por zonas
-      <div class="fake-pie"></div>
-    </div>
-    <div class="dashboard-card card-reporte">
-      Reporte de actividad
-    </div>
+
   </div>
 </main>
+<!-- Debug rápido en HTML -->
+<div style="display:none">
+  ${distritosJson}<br>
+  ${activosDistritoJson}<br>
+  ${inactivosDistritoJson}<br>
+</div>
+
+<script>
+  const activosZona = ${activosZona};
+  const inactivosZona = ${inactivosZona};
+
+  const distritos = ${distritosJson};
+  const activosPorDistrito = ${activosDistritoJson};
+  const inactivosPorDistrito = ${inactivosDistritoJson};
+
+  distritos.forEach(d => {
+    const option = document.createElement("option");
+    option.value = d;
+    option.textContent = d;
+    document.getElementById("filtroDistrito").appendChild(option);
+  });
+
+  // Gráfico Pastel
+  new Chart(document.getElementById('graficoPastelZona'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Activos', 'Inactivos'],
+      datasets: [{
+        data: [activosZona, inactivosZona],
+        backgroundColor: ['#2ecc71', '#e74c3c']
+      }]
+    },
+    options: {
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const value = context.parsed;
+              const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+              return `${context.label}: ${value} (${percent}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfico de Barras por Distrito
+  const ctxDistrito = document.getElementById('graficoPorDistrito').getContext('2d');
+  let graficoDistrito = new Chart(ctxDistrito, {
+    type: 'bar',
+    data: {
+      labels: ['Activos', 'Inactivos'],
+      datasets: [{
+        label: '',
+        data: [0, 0],
+        backgroundColor: ['#3498db', '#e67e22']
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  document.getElementById('filtroDistrito').addEventListener('change', function () {
+    const seleccionado = this.value;
+    const titulo = document.getElementById('tituloGraficoDistrito');
+    if (seleccionado === "todos") {
+      graficoDistrito.data.datasets[0].data = [0, 0];
+      graficoDistrito.data.datasets[0].label = "";
+      titulo.innerText = "Distribución por distrito (activos vs inactivos)";
+    } else {
+      const idx = distritos.indexOf(seleccionado);
+      if (idx !== -1) {
+        graficoDistrito.data.datasets[0].data = [activosPorDistrito[idx], inactivosPorDistrito[idx]];
+        graficoDistrito.data.datasets[0].label = seleccionado;
+        titulo.innerText = `Encuestadores en "${seleccionado}"`;
+      }
+    }
+    graficoDistrito.update();
+  });
+
+  // Gráfico de Línea
+  new Chart(document.getElementById('graficoLinea'), {
+    type: 'line',
+    data: {
+      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Encuestadores activos',
+        data: [5, 8, 12, 15, 20, 18],
+        borderColor: '#8e44ad',
+        fill: false,
+        tension: 0.2
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+</script>
+
 </body>
 </html>

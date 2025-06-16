@@ -1,13 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <html>
 <head>
-  <title>Gestión de Coordinadores</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <!-- Incluye tu CSS existente (ajusta la ruta) -->
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/estilos/encuestador.css">
+    <title>Gestión de Encuestadores</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/estilos/encuestador.css">
   <style>
     :root {
       --color-primary: #3498db;
@@ -385,154 +383,69 @@
     .btn-filtrar:hover {
         background-color: #2980b9;
     }
+    .btn-cambiar-estado {
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 0;
+        font-weight: bold;
+        cursor: pointer;
+        min-width: 140px;
+        width: 140px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 1rem;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(44,62,80,0.04);
+        text-align: center;
+    }
+    .btn-estado-activo {
+        background-color: #2ecc71;
+    }
+    .btn-estado-inactivo {
+        background-color: #e74c3c;
+    }
+    .paginacion {
+        margin-top: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    .paginacion a {
+        color: #3498db;
+        font-weight: bold;
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: background 0.2s;
+        font-size: 0.95rem;
+    }
+    .paginacion a.active,
+    .paginacion a:hover {
+        background-color: #e6f0ff;
+    }
 
   </style>
 </head>
-<script>
-    let cambiosPendientes = {};
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.dropdown-estado').forEach(function(drop) {
-            const btn = drop.querySelector('.btn-estado');
-            const menu = drop.querySelector('.dropdown-menu-estado');
-            const options = menu.querySelectorAll('.dropdown-option');
-
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-            });
-
-            options.forEach(function(opt) {
-                opt.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const nuevoEstado = this.getAttribute('data-value');
-                    const idUsuario = btn.getAttribute('data-id');
-                    const estadoActual = btn.getAttribute('data-estado');
-                    if (nuevoEstado === estadoActual) {
-                        menu.style.display = 'none';
-                        return;
-                    }
-
-                    // Actualizamos visual
-                    btn.setAttribute('data-estado', nuevoEstado);
-                    btn.innerHTML =
-                        (nuevoEstado === '2'
-                            ? '<span class="estado-activo"><i class="fas fa-circle"></i> Activo</span>'
-                            : '<span class="estado-inactivo"><i class="fas fa-circle"></i> Inactivo</span>')
-                        + '<i class="fa fa-caret-down" style="margin-left:6px;"></i>';
-
-                    cambiosPendientes[idUsuario] = nuevoEstado;
-                    menu.style.display = 'none';
-                });
-            });
-
-            document.addEventListener('click', function() {
-                menu.style.display = 'none';
-            });
-
-            menu.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        });
-
-        document.getElementById('btn-guardar-cambios').addEventListener('click', function () {
-            if (Object.keys(cambiosPendientes).length === 0) {
-                mostrarToast("No hay cambios por guardar", false);
-                return;
-            }
-
-            const params = new URLSearchParams();
-            params.append("accion", "guardarCambiosMasivos");
-            params.append("cambios", JSON.stringify(cambiosPendientes));
-
-            fetch('${pageContext.request.contextPath}/GestionEncuestadoresServlet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString()
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        mostrarToast("¡Cambios guardados con éxito!", true);
-                        cambiosPendientes = {};
-                    } else {
-                        mostrarToast("Error al guardar cambios", false);
-                    }
-                })
-                .catch(() => {
-                    mostrarToast("Error de red al guardar", false);
-                });
-        });
-    });
-
-
-
-    function mostrarToast(mensaje, exito) {
-        const toast = document.getElementById("toast");
-        toast.innerText = mensaje;
-        toast.style.backgroundColor = exito ? '#2ecc71' : '#e74c3c';
-        toast.style.visibility = "visible";
-        toast.style.opacity = "1";
-        toast.style.top = "20px";
-        setTimeout(() => {
-            toast.style.opacity = "0";
-            toast.style.top = "0px";
-            setTimeout(() => {
-                toast.style.visibility = "hidden";
-            }, 500);
-        }, 3000);
-    }
-
-</script>
-
-
 <body>
-
-
-<!-- Checkbox oculto para controlar el sidebar -->
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
-
-<!-- Sidebar (copiado de tu código) -->
-<!-- Sidebar (actualizado con nuevos apartados) -->
-<!-- Sidebar con íconos FontAwesome actualizados -->
-<div id="toast" style="
-  visibility: hidden;
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background-color: #2ecc71;
-  color: white;
-  text-align: left;
-  border-radius: 10px;
-  padding: 20px 25px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  z-index: 9999;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transition: opacity 0.5s ease, top 0.5s ease;
-">
-    Mensaje
-</div>
-
 <div class="sidebar">
-  <div class="sidebar-content">
-    <div class="sidebar-separator"></div>
-    <ul class="menu-links">
-      <li><a href="DashboardServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
-      <li><a href="GestionEncuestadoresServlet"><i class="fa-solid fa-users"></i> Gestionar Encuestadores</a></li>
-      <li><a href="GestionarFormulariosServlet"><i class="fa-solid fa-file-alt"></i> Gestionar Formularios</a></li>
-      <li><a href="CargarArchivosServlet"><i class="fa-solid fa-upload"></i> Cargar Archivos</a></li>
-      <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
-    </ul>
-  </div>
+    <div class="sidebar-content">
+        <div class="sidebar-separator"></div>
+        <ul class="menu-links">
+            <li><a href="DashboardServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
+            <li><a href="GestionEncuestadoresServlet"><i class="fa-solid fa-users"></i> Gestionar Encuestadores</a></li>
+            <li><a href="GestionarFormulariosServlet"><i class="fa-solid fa-file-alt"></i> Gestionar Formularios</a></li>
+            <li><a href="CargarArchivosServlet"><i class="fa-solid fa-upload"></i> Cargar Archivos</a></li>
+            <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
+        </ul>
+    </div>
 </div>
-<!-- ...resto del código... -->
-<!-- ...resto del código... -->
-
-<!-- Overlay para cerrar el sidebar al hacer clic fuera -->
 <label for="menu-toggle" class="overlay"></label>
-
-<!-- Header (copiado de tu código) -->
 <header class="header-bar">
     <div class="header-content">
         <div class="header-left">
@@ -546,16 +459,7 @@
         <nav class="header-right">
             <div class="nav-item dropdown" id="btn-encuestador" tabindex="0">
                 <img src="${pageContext.request.contextPath}/imagenes/usuario.png" alt="Icono Usuario" class="nav-icon">
-                <span>
-                        <c:choose>
-                            <c:when test="${not empty datosPerfil.usuario.nombre && not empty datosPerfil.usuario.apellidopaterno}">
-                                ${fn:substring(datosPerfil.usuario.nombre, 0, 1)}. ${datosPerfil.usuario.apellidopaterno}
-                            </c:when>
-                            <c:otherwise>
-                                ${sessionScope.nombre}
-                            </c:otherwise>
-                        </c:choose>
-                    </span>
+                <span>${sessionScope.nombre}</span>
                 <div class="dropdown-menu">
                     <a href="VerPerfilServlet">Ver perfil</a>
                     <a href="CerrarSesionServlet">Cerrar sesión</a>
@@ -567,131 +471,147 @@
         </nav>
     </div>
 </header>
-
-<!-- Contenido principal (ajustado por el sidebar) -->
 <main class="contenedor-principal">
-  <div class="contenedor">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="margin: 0;">Gestión de Encuestadores</h2>
-          <button id="btn-guardar-cambios" class="btn-filtrar" style="background-color: #2ecc71; margin-left: auto;">
-              <i class="fas fa-save"></i> Guardar Cambios
-          </button>
-      </div>
+    <div class="contenedor">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin-bottom: 0.5em;">Gestión de Encuestadores</h2>
+        </div>
+        <div class="filtros-superior">
+            <form method="get" action="GestionEncuestadoresServlet" style="display: flex; align-items: center; gap: 10px;">
+                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
+                <select name="estado" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
+                    <option value="">Todos</option>
+                    <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
+                    <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
+                </select>
+                <button type="submit" class="btn-filtrar"><i class="fas fa-search"></i> Filtrar</button>
+            </form>
+        </div>
+        <div class="tabla-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>DNI</th>
+                    <th>Correo electrónico</th>
+                    <th>Distrito</th>
+                    <th class="estado-col">Estado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <c:choose>
+                    <c:when test="${empty encuestadores}">
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#e74c3c; font-weight:bold; font-size:1.1em; padding:32px 0;">No se encontraron resultados.</td>
+                        </tr>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach var="encuestador" items="${encuestadores}">
+                            <tr data-id="${encuestador.usuario.idUsuario}">
+                                <td>${encuestador.usuario.nombre} ${encuestador.usuario.apellidopaterno} ${encuestador.usuario.apellidomaterno}</td>
+                                <td>${encuestador.usuario.dni}</td>
+                                <td>${encuestador.credencial.correo}</td>
+                                <td>${encuestador.distritoNombre}</td>
+                                <td class="estado-col">
+                                    <button class="btn-cambiar-estado ${encuestador.usuario.idEstado == 2 ? 'btn-estado-activo' : 'btn-estado-inactivo'}"
+                                                               data-id="${encuestador.usuario.idUsuario}"
+                                                               data-estado="${encuestador.usuario.idEstado != null ? encuestador.usuario.idEstado : 2}">
+                                    <i class="fas fa-power-off"></i>
+                                        ${encuestador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
+                                </button>
 
-      <form method="get" action="GestionEncuestadoresServlet" class="busqueda-form">
-          <div class="filtros-container">
-              <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" class="input-filtro" value="${param.nombre}"/>
-              <select name="estado" class="input-filtro">
-                  <option value="">Todos</option>
-                  <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activos</option>
-                  <option value="1" ${param.estado == '1' ? 'selected' : ''}>Inactivos</option>
-              </select>
-              <button type="submit" class="btn-filtrar"><i class="fas fa-search"></i> Filtrar</button>
-          </div>
-      </form>
-
-      <div class="tabla-container">
-      <table>
-        <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>DNI</th>
-          <th>Correo electrónico</th>
-          <th>Distrito</th>
-          <th>Estado</th>
-        </tr>
-        </thead>
-        <tbody>
-          <c:forEach var="encuestador" items="${encuestadores}">
-            <tr>
-                <td>${encuestador.usuario.nombre} ${encuestador.usuario.apellidopaterno} ${encuestador.usuario.apellidomaterno}</td>
-                <td>${encuestador.usuario.dni}</td>
-                <td>${encuestador.credencial.correo}</td>
-                <td>${encuestador.usuario.idDistrito}</td>
-                <td>
-                    <div class="dropdown-estado">
-                        <button
-                                class="btn-estado"
-                                data-id="${encuestador.usuario.idUsuario}"
-                                data-estado="${encuestador.usuario.idEstado != null ? encuestador.usuario.idEstado : 2}">
-          <span class="${encuestador.usuario.idEstado == 2 ? 'estado-activo' : 'estado-inactivo'}">
-            <i class="fas fa-circle"></i>
-            ${encuestador.usuario.idEstado == 2 ? 'Activo' : 'Inactivo'}
-          </span>
-                            <i class="fa fa-caret-down" style="margin-left:6px;"></i>
-                        </button>
-                        <div class="dropdown-menu-estado" style="display:none;">
-                            <div class="dropdown-option" data-value="2">
-                                <span class="estado-activo"><i class="fas fa-circle"></i> Activo</span>
-                            </div>
-                            <div class="dropdown-option" data-value="1">
-                                <span class="estado-inactivo"><i class="fas fa-circle"></i> Inactivo</span>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-
-              <td><!-- Aquí puedes poner la fecha de último acceso si la tienes --></td>
-            </tr>
-          </c:forEach>
-        </tbody>
-
-      </table>
-          <div style="margin-top: 30px; display: flex; justify-content: center;">
-              <c:if test="${totalPaginas >= 1}">
-                  <div style="display: flex; gap: 10px; align-items: center;">
-                      <c:forEach begin="1" end="${totalPaginas}" var="i">
-                          <c:choose>
-                              <c:when test="${i == paginaActual}">
-                        <span style="
-                            padding: 6px 14px;
-                            background-color: #e6f0ff;
-                            color: #3498db;
-                            font-weight: bold;
-                            border-radius: 8px;
-                            font-size: 15px;
-                            border: 1px solid #3498db;
-                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                        ">${i}</span>
-                              </c:when>
-                              <c:otherwise>
-                                  <a href="GestionEncuestadoresServlet?pagina=${i}
-                           <c:if test='${not empty param.nombre}'> &amp;nombre=${fn:escapeXml(param.nombre)} </c:if>
-                           <c:if test='${not empty param.estado}'> &amp;estado=${param.estado} </c:if>"
-                                     style="
-                               padding: 6px 14px;
-                               border-radius: 8px;
-                               background-color: #fff;
-                               border: 1px solid #3498db;
-                               color: #3498db;
-                               text-decoration: none;
-                               font-size: 15px;
-                               font-weight: bold;
-                               transition: background 0.2s ease;
-                           "
-                                     onmouseover="this.style.background='#dbeeff'"
-                                     onmouseout="this.style.background='#fff'">
-                                          ${i}
-                                  </a>
-                              </c:otherwise>
-                          </c:choose>
-                      </c:forEach>
-
-                      <!-- Flecha siguiente (solo si no estamos en la última página) -->
-                      <c:if test="${paginaActual < totalPaginas}">
-                          <a href="GestionEncuestadoresServlet?pagina=${paginaActual + 1}
-                   <c:if test='${not empty param.nombre}'> &amp;nombre=${fn:escapeXml(param.nombre)} </c:if>
-                   <c:if test='${not empty param.estado}'> &amp;estado=${param.estado} </c:if>"
-                             style="text-decoration: none; font-size: 18px; font-weight: bold; color: #3498db;">&gt;</a>
-                      </c:if>
-                  </div>
-              </c:if>
-          </div>
-
-      </div>
-  </div>
-
-
+                                </td>
+                            </tr>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
+                </tbody>
+            </table>
+            <div class="paginacion">
+                <c:if test="${paginaActual > 1}">
+                    <a href="GestionEncuestadoresServlet?pagina=${paginaActual - 1}">&lt;</a>
+                </c:if>
+                <c:forEach var="i" begin="1" end="${totalPaginas}">
+                    <a href="GestionEncuestadoresServlet?pagina=${i}" class="${i == paginaActual ? 'active' : ''}">${i}</a>
+                </c:forEach>
+                <c:if test="${paginaActual < totalPaginas}">
+                    <a href="GestionEncuestadoresServlet?pagina=${paginaActual + 1}">&gt;</a>
+                </c:if>
+            </div>
+        </div>
+    </div>
 </main>
+<div id="modal-confirm" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:32px 28px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; text-align:center;">
+        <div id="modal-msg" style="font-size:1.1rem; margin-bottom:18px;"></div>
+        <button id="modal-confirm-btn" style="background:#2ecc71; color:#fff; border:none; border-radius:8px; padding:8px 22px; font-weight:bold; margin-right:12px; cursor:pointer;">Confirmar</button>
+        <button id="modal-cancel-btn" style="background:#e74c3c; color:#fff; border:none; border-radius:8px; padding:8px 22px; font-weight:bold; cursor:pointer;">Cancelar</button>
+    </div>
+</div>
+<div id="toast" style="visibility: hidden; position: fixed; top: 32px; left: 50%; transform: translateX(-50%); background-color: #2ecc71; color: white; text-align: center; border-radius: 10px; padding: 20px 25px; font-size: 1.1rem; font-weight: bold; z-index: 9999; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); opacity: 0; transition: opacity 0.5s ease, top 0.5s ease;">Mensaje</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let idPendiente = null, nuevoEstadoPendiente = null;
+        document.querySelectorAll('.btn-cambiar-estado').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                idPendiente = btn.getAttribute('data-id');
+                const estadoActual = btn.getAttribute('data-estado');
+                nuevoEstadoPendiente = (estadoActual === '2') ? '1' : '2';
+                document.getElementById('modal-msg').innerText = (nuevoEstadoPendiente === '2') ?
+                    '¿Está seguro que desea ACTIVAR a este encuestador?' :
+                    '¿Está seguro que desea DESACTIVAR a este encuestador?';
+                document.getElementById('modal-confirm').style.display = 'flex';
+            });
+        });
+        document.getElementById('modal-cancel-btn').onclick = function() {
+            document.getElementById('modal-confirm').style.display = 'none';
+            idPendiente = null; nuevoEstadoPendiente = null;
+        };
+        document.getElementById('modal-confirm-btn').onclick = function() {
+            if (!idPendiente || !nuevoEstadoPendiente) return;
+            const idUsuarioLocal = idPendiente;
+            const nuevoEstadoLocal = nuevoEstadoPendiente;
+            fetch('${pageContext.request.contextPath}/GestionEncuestadoresServlet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'accion=cambiarEstado&idUsuario=' + encodeURIComponent(idUsuarioLocal) + '&nuevoEstado=' + encodeURIComponent(nuevoEstadoLocal)
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.success) {
+                        const btn = document.querySelector('.btn-cambiar-estado[data-id="' + idUsuarioLocal + '"]');
+                        btn.setAttribute('data-estado', nuevoEstadoLocal);
+                        btn.innerHTML = '<i class="fas fa-power-off"></i> ' + (nuevoEstadoLocal === '2' ? 'Activado' : 'Desactivado');
+                        btn.classList.toggle('btn-estado-activo', nuevoEstadoLocal === '2');
+                        btn.classList.toggle('btn-estado-inactivo', nuevoEstadoLocal !== '2');
+                        mostrarToast('¡Estado actualizado con éxito!', true);
+                    } else {
+                        mostrarToast('Error al cambiar estado', false);
+                    }
+                })
+                .catch(() => mostrarToast('Error de red al cambiar estado', false));
+            document.getElementById('modal-confirm').style.display = 'none';
+            idPendiente = null; nuevoEstadoPendiente = null;
+        };
+    });
+    function mostrarToast(mensaje, exito) {
+        const toast = document.getElementById("toast");
+        toast.innerText = mensaje;
+        toast.style.backgroundColor = exito ? '#2ecc71' : '#e74c3c';
+        toast.style.visibility = "visible";
+        toast.style.opacity = "1";
+        toast.style.top = "32px";
+        toast.style.left = "50%";
+        toast.style.transform = "translateX(-50%)";
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.top = "0px";
+            setTimeout(() => {
+                toast.style.visibility = "hidden";
+            }, 500);
+        }, 3000);
+    }
+</script>
 </body>
 </html>
