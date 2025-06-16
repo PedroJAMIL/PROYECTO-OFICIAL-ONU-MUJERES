@@ -1,5 +1,6 @@
 package com.example.webproyecto.servlets.administrador;
 
+import com.example.webproyecto.daos.UsuarioDao;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -27,9 +28,16 @@ public class InicioAdminServlet extends HttpServlet {
             return;
         }
 
-        // Aquí puedes agregar lógica para obtener datos del dashboard, por ejemplo:
-        // int encuestadoresActivos = ...;
-        // request.setAttribute("encuestadoresActivos", encuestadoresActivos);
+        // Obtener datos dinámicos para el dashboard
+        UsuarioDao usuarioDao = new UsuarioDao();
+        int encuestadoresActivos = usuarioDao.contarEncuestadoresActivos();
+        int encuestadoresDesactivos = usuarioDao.contarEncuestadoresDesactivos();
+        int coordinadoresActivos = usuarioDao.contarCoordinadoresActivos();
+        int coordinadoresDesactivos = usuarioDao.contarCoordinadoresDesactivos();
+        request.setAttribute("encuestadoresActivos", encuestadoresActivos);
+        request.setAttribute("encuestadoresDesactivos", encuestadoresDesactivos);
+        request.setAttribute("coordinadoresActivos", coordinadoresActivos);
+        request.setAttribute("coordinadoresDesactivos", coordinadoresDesactivos);
 
         request.setAttribute("nombre", session.getAttribute("nombre"));
         request.setAttribute("idUsuario", session.getAttribute("idUsuario"));

@@ -42,7 +42,10 @@ public class GestionEncuestadoresServlet extends HttpServlet {
         String nombreFiltro = request.getParameter("nombre");
         String estadoFiltro = request.getParameter("estado");
 
-        List<CoordinadorDTO> encuestadores = usuarioDao.listarEncuestadoresConCorreo();
+        int idCoordinador = (Integer) session.getAttribute("idUsuario");
+
+        List<CoordinadorDTO> encuestadores = usuarioDao.listarEncuestadoresPorZonaCoordinador(idCoordinador);
+
 
         if (nombreFiltro != null && !nombreFiltro.trim().isEmpty()) {
             String filtroLower = nombreFiltro.trim().toLowerCase();
@@ -60,7 +63,32 @@ public class GestionEncuestadoresServlet extends HttpServlet {
                 System.out.println("Estado inválido recibido: " + estadoFiltro);
             }
         }
-        request.setAttribute("encuestadores", encuestadores);
+        // PAGINACIÓN
+        int paginaActual = 1;
+        int elementosPorPagina = 10;
+        String paginaStr = request.getParameter("pagina");
+        if (paginaStr != null && !paginaStr.isEmpty()) {
+            try {
+                paginaActual = Integer.parseInt(paginaStr);
+            } catch (NumberFormatException e) {
+                paginaActual = 1;
+            }
+        }
+
+        int totalEncuestadores = encuestadores.size();
+        int totalPaginas = (int) Math.ceil((double) totalEncuestadores / elementosPorPagina);
+        int inicio = (paginaActual - 1) * elementosPorPagina;
+        int fin = Math.min(inicio + elementosPorPagina, totalEncuestadores);
+
+        List<CoordinadorDTO> encuestadoresPaginados = encuestadores.subList(inicio, fin);
+
+// ATRIBUTOS PARA EL JSP
+        request.setAttribute("encuestadores", encuestadoresPaginados);
+        request.setAttribute("paginaActual", paginaActual);
+        request.setAttribute("totalPaginas", totalPaginas);
+        request.setAttribute("nombreFiltro", nombreFiltro);
+        request.setAttribute("estadoFiltro", estadoFiltro);
+
 
         request.getRequestDispatcher("coordinador/jsp/VerFormularios.jsp").forward(request, response);
     }

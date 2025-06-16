@@ -237,23 +237,23 @@
         }
         .tipo-usuario-grid {
             display: flex;
-            justify-content: center;
+            justify-content: center; /* Esto centrará el único elemento que quede */
             gap: 48px;
             margin-bottom: 36px;
         }
         .tipo-usuario-card {
-        background: var(--color-card-select);
-        border-radius: 18px;
-        padding: 28px 38px 18px 38px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-        border: 3px solid transparent;
-        transition: border 0.2s, box-shadow 0.2s;
-        min-width: 180px;
-        min-height: 180px;
-        box-shadow: 0 2px 12px rgba(52, 152, 219, 0.08);
+            background: var(--color-card-select);
+            border-radius: 18px;
+            padding: 28px 38px 18px 38px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border 0.2s, box-shadow 0.2s;
+            min-width: 180px;
+            min-height: 180px;
+            box-shadow: 0 2px 12px rgba(52, 152, 219, 0.08);
         }
         .tipo-usuario-card.selected {
             border: 3px solid var(--color-primary);
@@ -274,7 +274,8 @@
         }
         .crear-usuario-btns {
             display: flex;
-            justify-content: space-between;
+            justify-content: center; /* Volvemos a centrar los ítems dentro del contenedor */
+            gap: 250px; /* Ajusta este valor (ej. 40px, 80px, etc.) */
             margin-top: 24px;
         }
         .btn {
@@ -302,40 +303,16 @@
             }
         }
     </style>
-    <script>
-        // JS para seleccionar tipo de usuario
-        function selectTipo(tipo) {
-            document.getElementById('rol').value = tipo;
-            document.getElementById('card-coordinador').classList.remove('selected');
-            document.getElementById('card-encuestador').classList.remove('selected');
-            if(tipo === 'coordinador') {
-                document.getElementById('card-coordinador').classList.add('selected');
-            } else {
-                document.getElementById('card-encuestador').classList.add('selected');
-            }
-        }
-        window.onload = function() {
-            // Por defecto ninguno seleccionado
-            document.getElementById('rol').value = '';
-        }
-        document.querySelectorAll('.card-usuario').forEach(card => {
-            card.addEventListener('click', function() {
-                document.getElementById('tipoUsuario').value = this.dataset.tipo;
-            });
-        });
-    </script>
 </head>
 <body>
-<!-- Checkbox oculto para controlar el sidebar -->
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
 
-<!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-content">
         <div class="sidebar-separator"></div>
         <ul class="menu-links">
             <li><a href="InicioAdminServlet"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-            <li><a href="CrearUsuarioServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
+            <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
             <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
@@ -344,10 +321,8 @@
     </div>
 </div>
 
-<!-- Overlay para cerrar el sidebar al hacer clic fuera -->
 <label for="menu-toggle" class="overlay"></label>
 
-<!-- Header -->
 <header class="header-bar">
     <div class="header-content">
         <div class="header-left">
@@ -383,21 +358,23 @@
     </div>
 </header>
 
-<!-- Contenido principal -->
 <main class="contenedor-principal">
     <div class="crear-usuario-wrapper">
         <div class="crear-usuario-title">SELECCIONE EL TIPO DE USUARIO</div>
-        <form action="CrearUsuarioServlet" method="post" id="formSeleccionUsuario">
+        <form action="CrearCoordinadorServlet" method="post" id="formSeleccionUsuario">
             <input type="hidden" name="tipoUsuario" id="tipoUsuario" value="">
             <div class="tipo-usuario-grid">
                 <div class="tipo-usuario-card" id="card-coordinador" onclick="selectTipo('coordinador')">
                     <i class="fa-solid fa-user"></i>
                     <div class="tipo-usuario-label">COORDINADOR INTERNO</div>
                 </div>
+                <%-- Eliminado: Contenedor para el Encuestador --%>
+                <%--
                 <div class="tipo-usuario-card" id="card-encuestador" onclick="selectTipo('encuestador')">
                     <i class="fa-solid fa-user"></i>
                     <div class="tipo-usuario-label">ENCUESTADOR</div>
                 </div>
+                --%>
             </div>
             <div class="crear-usuario-btns">
                 <button type="button" class="btn" onclick="window.history.back()">Volver</button>
@@ -408,12 +385,11 @@
             function selectTipo(tipo) {
                 document.getElementById('tipoUsuario').value = tipo;
                 document.getElementById('card-coordinador').classList.remove('selected');
-                document.getElementById('card-encuestador').classList.remove('selected');
+                // No hay necesidad de remover 'selected' de 'card-encuestador' ya que fue eliminada
                 if(tipo === 'coordinador') {
                     document.getElementById('card-coordinador').classList.add('selected');
-                } else {
-                    document.getElementById('card-encuestador').classList.add('selected');
                 }
+                // No hay 'else' para 'encuestador'
                 document.getElementById('btnContinuar').disabled = false;
             }
             window.onload = function() {
@@ -421,8 +397,13 @@
                 document.getElementById('tipoUsuario').value = '';
                 document.getElementById('btnContinuar').disabled = true;
                 document.getElementById('card-coordinador').classList.remove('selected');
-                document.getElementById('card-encuestador').classList.remove('selected');
+                // No hay necesidad de remover 'selected' de 'card-encuestador' ya que fue eliminada
             }
+            document.querySelectorAll('.card-usuario').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.getElementById('tipoUsuario').value = this.dataset.tipo;
+                });
+            });
         </script>
     </div>
 </main>

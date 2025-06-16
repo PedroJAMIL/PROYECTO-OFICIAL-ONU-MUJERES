@@ -189,6 +189,8 @@
         </select>
 
         <input type="email" name="correo" placeholder="Correo electrónico" required>
+        <input type="password" name="contrasenha" placeholder="Contraseña" required>
+        <input type="password" name="confirmarContrasenha" placeholder="Confirmar Contraseña" required>
 
         <button type="submit" class="login-btn">Registrarse</button>
 
@@ -196,7 +198,7 @@
           <p>¿Ya tienes una cuenta?</p>
         </div>
         <div class="iniciar-sesion">
-          <a href="credencial_principal.html">Iniciar Sesión</a>
+          <a href="LoginServlet">Iniciar Sesión</a>
         </div>
       </form>
     </section>

@@ -1,9 +1,16 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: cs
+  Date: 14/06/2025
+  Time: 16:02
+  To change this template use File | Settings | File Templates.
+--%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <html>
 <head>
-    <title>Generar Reporte de Encuestadores</title>
+    <title>Generar Reporte de Coordinadores</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
@@ -22,8 +29,6 @@
         body {
             min-height: 100vh;
             height: 100%;
-        }
-        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e6f0ff 0%, #b3ccff 100%);
             margin: 0;
@@ -32,8 +37,6 @@
         }
         .menu-toggle:checked ~ .sidebar { left: 0; }
         .menu-toggle:checked ~ .overlay { display: block; opacity: 1; }
-        /* Fix: NO empujar el contenido al abrir sidebar */
-        /* .menu-toggle:checked ~ .contenedor-principal { margin-left: 280px; } */
         .contenedor-principal {
             width: 100%;
             margin: 0;
@@ -227,7 +230,6 @@
             background: #e6f0ff;
             color: #007bff;
         }
-        /* Quitar centrado vertical y fondo azul del filtro */
         .reportes-form-row {
             display: flex;
             align-items: center;
@@ -236,9 +238,6 @@
             margin-top: 32px;
             margin-bottom: 18px;
             flex-wrap: wrap;
-            background: none;
-            box-shadow: none;
-            border-radius: 0;
         }
         form[style] {
             flex: 1 1 auto;
@@ -289,23 +288,6 @@
             color: #fff;
             box-shadow: 0 4px 16px rgba(52, 152, 219, 0.18);
         }
-        .reporte-preview {
-            flex: 1 1 auto !important;
-            min-height: 340px;
-            margin-top: 24px;
-            margin-bottom: 0;
-            background: #b3ccff;
-            border-radius: 18px;
-            max-width: 100%;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.15em;
-            color: #222;
-            box-shadow: 0 2px 12px rgba(52, 152, 219, 0.08);
-            transition: min-height 0.2s;
-          }
         .btn-descargar {
             background: var(--color-btn);
             color: #fff;
@@ -353,7 +335,7 @@
             padding: 18px 18px 10px 18px;
             max-width: 98vw;
             width: 100%;
-            margin: 0 auto 18px auto; /* Sin separación arriba, solo abajo */
+            margin: 0 auto 18px auto;
             box-sizing: border-box;
             position: relative;
             left: 50%;
@@ -399,37 +381,6 @@
             padding: 5px 14px;
             font-weight: 600;
         }
-        .selector-reporte {
-            margin-bottom: 10px;
-        }
-        .btn-reporte, .btn-descargar {
-            margin-top: 0;
-        }
-        .filtro-centrado-vertical {
-            display: flex;
-            flex-direction: row;
-            justify-content: flex-start;
-            align-items: center;
-            min-height: unset;
-            margin: 0;
-            background: none;
-            box-shadow: none;
-        }
-        .dropdown-select {
-            position: absolute;
-            top: 110%;
-            left: 0;
-            z-index: 3000;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 16px rgba(52, 152, 219, 0.13);
-            padding: 10px 12px 10px 12px;
-            animation: fadeIn 0.18s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
         @media (max-width: 900px) {
             .contenedor-principal { padding: 8px 1vw 0 1vw; }
             .contenedor { padding: 10px 2vw 6px 2vw; }
@@ -437,6 +388,7 @@
         @media (max-width: 600px) {
             .reportes-form-row { flex-direction: column; gap: 10px; align-items: stretch; }
             .btn-reporte, .btn-descargar { width: 100%; }
+            .filtro-centrado-vertical { height: auto; min-height: 80px; }
         }
         .btn-filtro {
             background: linear-gradient(90deg, #e6f0ff 60%, #b3ccff 100%);
@@ -458,12 +410,25 @@
             color: #003366;
             box-shadow: 0 4px 16px rgba(52, 152, 219, 0.13);
         }
+        .dropdown-select {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            z-index: 3000;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(52, 152, 219, 0.13);
+            padding: 10px 12px 10px 12px;
+            animation: fadeIn 0.18s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
-<!-- Checkbox oculto para controlar el sidebar -->
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
-
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-content">
@@ -473,15 +438,13 @@
             <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
-            <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
+            <li><a href="GenerarReportesCoordiServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
             <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
         </ul>
     </div>
 </div>
-
 <!-- Overlay para cerrar el sidebar al hacer clic fuera -->
 <label for="menu-toggle" class="overlay"></label>
-
 <!-- Header -->
 <header class="header-bar">
     <div class="header-content">
@@ -517,10 +480,8 @@
         </nav>
     </div>
 </header>
-
-<!-- Contenido principal -->
 <main class="contenedor-principal">
-    <form id="formReporte" style="position:relative; min-height: unset; padding-bottom: 30px;" method="get" action="GenerarReportesServlet">
+    <form id="formReporteCoordi" style="position:relative; min-height: unset; padding-bottom: 30px;" method="get" action="GenerarReportesCoordiServlet">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; position: relative;">
             <div class="reportes-form-row" style="margin: 0; gap: 12px; position: relative;">
                 <div style="position: relative; display: flex; align-items: center; gap: 6px;">
@@ -548,7 +509,7 @@
             </button>
         </div>
         <div class="contenedor" style="margin-top: 0;">
-            <h2>Vista previa de Reporte de Encuestadores</h2>
+            <h2>Vista previa de Reporte de Coordinadores</h2>
             <div class="tabla-container">
                 <table>
                     <thead>
@@ -562,21 +523,21 @@
                     </thead>
                     <tbody>
                         <c:choose>
-                            <c:when test="${empty encuestadores}">
+                            <c:when test="${empty coordinadores}">
                                 <tr>
                                     <td colspan="5" style="text-align:center; color:#888; font-style:italic; background:#f5f7fa;">No se encontró información para los filtros seleccionados.</td>
                                 </tr>
                             </c:when>
                             <c:otherwise>
-                                <c:forEach var="encuestador" items="${encuestadores}">
+                                <c:forEach var="coordinador" items="${coordinadores}">
                                     <tr>
-                                        <td>${encuestador.usuario.nombre} ${encuestador.usuario.apellidopaterno} ${encuestador.usuario.apellidomaterno}</td>
-                                        <td>${encuestador.usuario.dni}</td>
-                                        <td>${encuestador.credencial.correo}</td>
-                                        <td>${encuestador.zonaTrabajoNombre}</td>
+                                        <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
+                                        <td>${coordinador.usuario.dni}</td>
+                                        <td>${coordinador.credencial.correo}</td>
+                                        <td>${coordinador.zonaTrabajoNombre}</td>
                                         <td>
-                                            <span class="${encuestador.usuario.idEstado == 2 ? 'estado-activo' : 'estado-inactivo'}">
-                                                ${encuestador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
+                                            <span class="${coordinador.usuario.idEstado == 2 ? 'estado-activo' : 'estado-inactivo'}">
+                                                ${coordinador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
                                             </span>
                                         </td>
                                     </tr>
