@@ -396,15 +396,13 @@ public class UsuarioDao {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public boolean insertarUsuario(Usuario usuario) throws SQLException {
-        // **¡¡¡CAMBIO CRÍTICO AQUÍ: ACTUALIZAR LA SENTENCIA SQL Y LOS PLACEHOLDERS!!!**
-        // Columnas en DB: nombre, apellidopaterno, apellidomaterno, dni, direccion, idrol, iddistrito, idDistritoTrabajo, idestado, foto, nombrefoto, idZonaTrabajo
+    }    public boolean insertarUsuario(Usuario usuario) throws SQLException {
+        // Actualizado para coincidir con la estructura real de la BD
+        // Columnas en DB: nombre, apellidopaterno, apellidomaterno, dni, direccion, idRol, idDistrito, idEstado, foto, idZonaTrabajo
         String sql = "INSERT INTO usuario (" +
                 "nombre, apellidopaterno, apellidomaterno, dni, direccion, " +
-                "idrol, iddistrito, idDistritoTrabajo, idestado, foto, nombrefoto, idZonaTrabajo" +
-                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // ¡12 PLACEHOLDERS!
+                "idRol, idDistrito, idEstado, foto, idZonaTrabajo" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // 10 PLACEHOLDERS
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -416,43 +414,20 @@ public class UsuarioDao {
             pstmt.setString(5, usuario.getDireccion());
             pstmt.setInt(6, usuario.getIdRol()); // idRol
             pstmt.setInt(7, usuario.getIdDistrito()); // idDistrito de residencia
-
-            // idDistritoTrabajo (posición 8)
-            if (usuario.getIdDistritoTrabajo() != null) {
-                pstmt.setInt(8, usuario.getIdDistritoTrabajo());
-            } else {
-                pstmt.setNull(8, java.sql.Types.INTEGER);
-            }
-
-            pstmt.setInt(9, usuario.getIdEstado()); // idEstado (posición 9)
-
-            // Manejo de 'foto' (longblob) y 'nombrefoto' (varchar)
-            // 'usuario.getFoto()' (String) ahora se asume que es el contenido de la foto en Base64
-            // 'usuario.getNombrefoto()' (String) es el nombre del archivo
+            pstmt.setInt(8, usuario.getIdEstado()); // idEstado
+            
+            // foto (posición 9) - solo el campo foto existe en la BD
             if (usuario.getFoto() != null && !usuario.getFoto().isEmpty()) {
-                try {
-                    byte[] fotoBytes = Base64.getDecoder().decode(usuario.getFoto());
-                    pstmt.setBlob(10, new java.io.ByteArrayInputStream(fotoBytes)); // Para la columna 'foto' (BLOB)
-                } catch (IllegalArgumentException e) {
-                    System.err.println("Advertencia: La cadena de foto no es un Base64 válido. Se insertará NULL para la foto binaria.");
-                    pstmt.setNull(10, java.sql.Types.BLOB); // Si no es Base64 válido, insertar NULL
-                }
+                pstmt.setString(9, usuario.getFoto());
             } else {
-                pstmt.setNull(10, java.sql.Types.BLOB); // Si no hay foto, insertar NULL
+                pstmt.setString(9, ""); // String vacío por defecto
             }
-
-            // nombrefoto (posición 11)
-            if (usuario.getNombrefoto() != null && !usuario.getNombrefoto().isEmpty()) {
-                pstmt.setString(11, usuario.getNombrefoto());
-            } else {
-                pstmt.setNull(11, java.sql.Types.VARCHAR);
-            }
-
-            // idZonaTrabajo (posición 12)
+            
+            // idZonaTrabajo (posición 10) - puede ser null para encuestadores
             if (usuario.getIdZonaTrabajo() != null) {
-                pstmt.setInt(12, usuario.getIdZonaTrabajo());
+                pstmt.setInt(10, usuario.getIdZonaTrabajo());
             } else {
-                pstmt.setNull(12, java.sql.Types.INTEGER);
+                pstmt.setNull(10, Types.INTEGER); // NULL por defecto para encuestadores
             }
 
             int rowsAffected = pstmt.executeUpdate();

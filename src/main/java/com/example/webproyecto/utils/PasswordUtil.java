@@ -1,9 +1,12 @@
 package com.example.webproyecto.utils;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class PasswordUtil {
     public static String hashPassword(String password) {
         try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hash = md.digest(password.getBytes());
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
@@ -12,7 +15,7 @@ public class PasswordUtil {
                 hexString.append(hex);
             }
             return hexString.toString();
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }

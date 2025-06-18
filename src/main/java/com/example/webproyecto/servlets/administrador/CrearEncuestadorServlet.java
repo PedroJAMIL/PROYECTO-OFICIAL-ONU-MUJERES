@@ -6,6 +6,7 @@ import com.example.webproyecto.beans.Distrito;
 import com.example.webproyecto.daos.UsuarioDao;
 import com.example.webproyecto.daos.CredencialDao;
 import com.example.webproyecto.daos.DistritoDao;
+import java.sql.SQLException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -55,29 +56,35 @@ public class CrearEncuestadorServlet extends HttpServlet {
         usuario.setApellidomaterno(apellidomaterno);
         usuario.setDni(dni);
         usuario.setDireccion(direccion);
-        usuario.setIdDistrito(idDistrito);
-        usuario.setIdRol(3); // 3 = Encuestador
+        usuario.setIdDistrito(idDistrito);        usuario.setIdRol(3); // 3 = Encuestador
         usuario.setIdEstado(idEstado);
         usuario.setFoto(foto);
 
-        boolean usuarioCreado = usuarioDao.insertarUsuario(usuario);
+        try {
+            boolean usuarioCreado = usuarioDao.insertarUsuario(usuario);
 
-        if (usuarioCreado) {
-            Credencial credencial = new Credencial();
-            credencial.setCorreo(correo);
-            credencial.setContrasenha(password);
-            credencial.setIdUsuario(usuario.getIdUsuario());
+            if (usuarioCreado) {
+                Credencial credencial = new Credencial();
+                credencial.setCorreo(correo);
+                credencial.setContrasenha(password);
+                credencial.setIdUsuario(usuario.getIdUsuario());
 
-            boolean credOk = credencialDao.insertarCredencial(credencial);
+                boolean credOk = credencialDao.insertarCredencial(credencial);
 
-            if (credOk) {
-                response.sendRedirect("GestionarEncuestadoresServlet");
+                if (credOk) {
+                    response.sendRedirect("GestionarEncuestadoresServlet");
+                } else {
+                    request.setAttribute("error", "Error al guardar la credencial.");
+                    request.getRequestDispatcher("admin/crearEncuestador.jsp").forward(request, response);
+                }
             } else {
-                request.setAttribute("error", "Error al guardar la credencial.");
+                request.setAttribute("error", "Error al guardar el encuestador.");
                 request.getRequestDispatcher("admin/crearEncuestador.jsp").forward(request, response);
             }
-        } else {
-            request.setAttribute("error", "Error al guardar el encuestador.");
+        } catch (SQLException e) {
+            System.err.println("Error SQL al insertar usuario: " + e.getMessage());
+            e.printStackTrace();
+            request.setAttribute("error", "Error en la base de datos al crear el encuestador.");
             request.getRequestDispatcher("admin/crearEncuestador.jsp").forward(request, response);
         }
     }

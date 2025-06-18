@@ -42,19 +42,134 @@
 
     <!-- Sección para establecer contraseña -->
     <section class="login-section">
-      <h4>Establecer Contraseña</h4>
-
-      <c:if test="${not empty error}">
+      <h4>Establecer Contraseña</h4>      <c:if test="${not empty error}">
         <div class="error-message">${error}</div>
       </c:if>
 
-      <form action="establecerContrasena" method="POST">
-        <!-- Puedes pasar el código o el id del usuario como hidden si lo necesitas -->
-        <input type="hidden" name="codigo" value="${param.codigo}" />
-        <input type="password" name="contrasena" placeholder="Nueva contraseña" required>
-        <input type="password" name="confirmarContrasena" placeholder="Confirmar contraseña" required>
-        <button type="submit" class="login-btn">Guardar Contraseña</button>
+      <form action="establecerContrasena" method="POST" id="passwordForm">
+        <input type="hidden" name="codigo" value="${param.codigo}${codigo}" />
+        
+        <div class="password-requirements">
+          <h5>Requisitos de la contraseña:</h5>
+          <ul>
+            <li id="length">Al menos 8 caracteres</li>
+            <li id="uppercase">Una letra mayúscula</li>
+            <li id="lowercase">Una letra minúscula</li>
+            <li id="number">Un número</li>
+          </ul>
+        </div>
+        
+        <input type="password" name="contrasena" id="password" placeholder="Nueva contraseña" required>
+        <input type="password" name="confirmarContrasena" id="confirmPassword" placeholder="Confirmar contraseña" required>
+        <div id="password-match" class="password-feedback"></div>
+        
+        <button type="submit" class="login-btn" id="submitBtn" disabled>Guardar Contraseña</button>
       </form>
+      
+      <style>
+        .password-requirements {
+          background: #f8f9fa;
+          border: 1px solid #dee2e6;
+          border-radius: 8px;
+          padding: 15px;
+          margin: 15px 0;
+          font-size: 14px;
+        }
+        .password-requirements h5 {
+          margin: 0 0 10px 0;
+          color: #495057;
+        }
+        .password-requirements ul {
+          margin: 0;
+          padding-left: 20px;
+        }
+        .password-requirements li {
+          margin: 5px 0;
+          color: #dc3545;
+        }
+        .password-requirements li.valid {
+          color: #28a745;
+        }
+        .password-feedback {
+          margin-top: 10px;
+          font-size: 14px;
+          font-weight: 500;
+        }
+        .password-feedback.match {
+          color: #28a745;
+        }
+        .password-feedback.no-match {
+          color: #dc3545;
+        }
+        .login-btn:disabled {
+          background: #6c757d;
+          cursor: not-allowed;
+        }
+      </style>
+      
+      <script>
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const submitBtn = document.getElementById('submitBtn');
+        const matchDiv = document.getElementById('password-match');
+        
+        function validatePassword() {
+          const pwd = password.value;
+          const requirements = {
+            length: pwd.length >= 8,
+            uppercase: /[A-Z]/.test(pwd),
+            lowercase: /[a-z]/.test(pwd),
+            number: /\d/.test(pwd)
+          };
+          
+          // Actualizar indicadores visuales
+          Object.keys(requirements).forEach(req => {
+            const element = document.getElementById(req);
+            if (requirements[req]) {
+              element.classList.add('valid');
+            } else {
+              element.classList.remove('valid');
+            }
+          });
+          
+          return Object.values(requirements).every(Boolean);
+        }
+        
+        function validateConfirm() {
+          const match = password.value === confirmPassword.value && password.value.length > 0;
+          
+          if (confirmPassword.value.length > 0) {
+            if (match) {
+              matchDiv.textContent = '✓ Las contraseñas coinciden';
+              matchDiv.className = 'password-feedback match';
+            } else {
+              matchDiv.textContent = '✗ Las contraseñas no coinciden';
+              matchDiv.className = 'password-feedback no-match';
+            }
+          } else {
+            matchDiv.textContent = '';
+            matchDiv.className = 'password-feedback';
+          }
+          
+          return match;
+        }
+        
+        function updateSubmitButton() {
+          const passwordValid = validatePassword();
+          const confirmValid = validateConfirm();
+          submitBtn.disabled = !(passwordValid && confirmValid);
+        }
+        
+        password.addEventListener('input', updateSubmitButton);
+        confirmPassword.addEventListener('input', updateSubmitButton);
+        
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+          if (!validatePassword() || !validateConfirm()) {
+            e.preventDefault();
+            alert('Por favor, completa todos los requisitos de contraseña.');
+          }
+        });
+      </script>
     </section>
   </main>
 

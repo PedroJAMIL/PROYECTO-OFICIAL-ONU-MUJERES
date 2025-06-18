@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verifica tu correo - ONU Mujeres</title>
+  <title>Verificación Exitosa - ONU Mujeres</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
@@ -12,7 +12,7 @@
     .header-bar { background-color: #dbeeff; height: 50px; display: flex; align-items: center; justify-content: center; }
     .header-bar img { height: 30px; }
     .content-container { display: flex; flex: 1; }
-    .info-section { 
+    .success-section { 
       flex: 1; 
       display: flex; 
       align-items: center; 
@@ -20,7 +20,7 @@
       padding: 40px; 
       background-color: #fff;
     }
-    .info-box {
+    .success-box {
       text-align: center;
       max-width: 500px;
       padding: 40px;
@@ -29,7 +29,7 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
-    .mail-icon {
+    .success-icon {
       font-size: 64px;
       color: #4CAF50;
       margin-bottom: 20px;
@@ -42,44 +42,34 @@
       justify-content: center;
       margin: 0 auto 20px auto;
     }
-    .info-box h2 {
+    .success-box h2 {
       font-size: 28px;
       margin-bottom: 15px;
       font-weight: bold;
     }
-    .info-box p {
+    .success-box p {
       font-size: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       line-height: 1.6;
       opacity: 0.9;
     }
-    .steps {
-      text-align: left;
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    .steps h3 {
-      margin-bottom: 15px;
-      font-size: 18px;
-    }
-    .steps ol {
-      margin-left: 20px;
-    }
-    .steps li {
-      margin-bottom: 8px;
-      line-height: 1.5;
-    }
-    .login-link {
-      color: #81c784;
+    .login-btn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
       text-decoration: none;
+      display: inline-block;
       font-weight: 500;
-      border-bottom: 1px solid transparent;
-      transition: border-bottom 0.3s;
     }
-    .login-link:hover {
-      border-bottom: 1px solid #81c784;
+    .login-btn:hover {
+      background: #45a049;
+      text-decoration: none;
+      color: white;
     }
     .footer-bar {
       background-color: #333;
@@ -110,31 +100,20 @@
       <img src="imagenes/portada.jpg" alt="Imagen principal" style="width: 100%; height: 100%; object-fit: cover;">
     </section>
 
-    <!-- Sección de información -->
-    <section class="info-section">
-      <div class="info-box">
-        <div class="mail-icon">
-          <i class="fas fa-envelope"></i>
+    <!-- Sección de verificación exitosa -->
+    <section class="success-section">
+      <div class="success-box">
+        <div class="success-icon">
+          <i class="fas fa-check"></i>
         </div>
-        <h2>¡Registro Exitoso!</h2>
+        <h2>¡Verificación Exitosa!</h2>
         <p>
-          Te hemos enviado un correo electrónico con las instrucciones para completar tu registro.
+          Tu cuenta ha sido verificada correctamente y tu contraseña ha sido establecida. 
+          Ya puedes iniciar sesión con tus credenciales.
         </p>
-        
-        <div class="steps">
-          <h3>Sigue estos pasos:</h3>
-          <ol>
-            <li>Revisa tu bandeja de entrada (y spam)</li>
-            <li>Haz clic en el enlace del correo</li>
-            <li>Establece tu contraseña</li>
-            <li>¡Inicia sesión y comienza!</li>
-          </ol>
-        </div>
-        
-        <p style="margin-top: 25px;">
-          ¿Ya estableciste tu contraseña? 
-          <a href="login.jsp" class="login-link">Iniciar Sesión</a>
-        </p>
+        <a href="login.jsp" class="login-btn">
+          <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+        </a>
       </div>
     </section>
   </main>

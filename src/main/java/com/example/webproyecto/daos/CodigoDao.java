@@ -6,13 +6,14 @@ import com.example.webproyecto.beans.Usuario;
 import java.sql.*;
 
 public class CodigoDao extends BaseDao {
+    
     public String generateCodigo(String correo) {
         Usuario usuario = getUsuarioByCorreo(correo);
         String codigo = CodeGenerator.generator();
         String sql = "INSERT INTO codigo_verificacion (idusuario, codigo) VALUES (?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, usuario.getUsuarioId());
+            pstmt.setInt(1, usuario.getIdUsuario());
             pstmt.setString(2, codigo);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -20,7 +21,7 @@ public class CodigoDao extends BaseDao {
         }
         return codigo;
     }
-
+    
     public Usuario getUsuarioByCorreo(String correo) {
         Usuario usuario = null;
         String sql = "SELECT u.* FROM usuario u JOIN credencial c ON u.idusuario = c.idusuario WHERE c.correo = ?";
@@ -30,9 +31,17 @@ public class CodigoDao extends BaseDao {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     usuario = new Usuario();
-                    usuario.setUsuarioId(rs.getInt("idusuario"));
-                    usuario.setCorreo(correo); // O puedes omitir si no tienes setCorreo
-                    // ...otros campos...
+                    usuario.setIdUsuario(rs.getInt("idusuario"));
+                    // Omitimos setCorreo porque la clase Usuario no tiene este método
+                    // El correo se maneja separadamente en la tabla credencial
+                    usuario.setNombre(rs.getString("nombre"));
+                    usuario.setApellidopaterno(rs.getString("apellidopaterno"));
+                    usuario.setApellidomaterno(rs.getString("apellidomaterno"));
+                    usuario.setDni(rs.getString("dni"));
+                    usuario.setDireccion(rs.getString("direccion"));
+                    usuario.setIdDistrito(rs.getInt("idDistrito"));
+                    usuario.setIdRol(rs.getInt("idRol"));
+                    usuario.setIdEstado(rs.getInt("idEstado"));
                 }
             }
         } catch (SQLException e) {
@@ -50,8 +59,7 @@ public class CodigoDao extends BaseDao {
                 return rs.next();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+            throw new RuntimeException(e);        }
     }
 
     public void deleteCodigo(String codigo) {
@@ -61,16 +69,26 @@ public class CodigoDao extends BaseDao {
             pstmt.setString(1, codigo);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+            throw new RuntimeException(e);        }
     }
-
+    
     public void marcarUsuarioComoVerificado(int usuarioId) {
-        String sql = "UPDATE usuario SET idestado = 1 WHERE idusuario = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, usuarioId);
-            pstmt.executeUpdate();
+        // Actualizar tanto el estado del usuario como marcar la credencial como verificada
+        String sqlUsuario = "UPDATE usuario SET idestado = 1 WHERE idusuario = ?";
+        String sqlCredencial = "UPDATE credencial SET verificado = TRUE WHERE idusuario = ?";
+        
+        try (Connection conn = getConnection()) {
+            // Actualizar estado de usuario
+            try (PreparedStatement pstmt1 = conn.prepareStatement(sqlUsuario)) {
+                pstmt1.setInt(1, usuarioId);
+                pstmt1.executeUpdate();
+            }
+            
+            // Marcar credencial como verificada
+            try (PreparedStatement pstmt2 = conn.prepareStatement(sqlCredencial)) {
+                pstmt2.setInt(1, usuarioId);
+                pstmt2.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

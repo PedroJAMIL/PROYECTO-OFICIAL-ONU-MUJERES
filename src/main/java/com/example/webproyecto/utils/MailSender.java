@@ -26,11 +26,10 @@ public class MailSender {
         System.out.println("=== INTENTANDO ENVIAR EMAIL ==="); 
         System.out.println("Para: " + toEmail);
         System.out.println("Asunto: " + subject);
-        System.out.println("Contenido: " + body);
-        // Configuración de la sesión de correo
-        Session session = Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
+        System.out.println("Contenido: " + body);        // Configuración de la sesión de correo
+        Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
+            protected jakarta.mail.PasswordAuthentication getPasswordAuthentication() {
+                return new jakarta.mail.PasswordAuthentication(username, password);
             }
         });
 

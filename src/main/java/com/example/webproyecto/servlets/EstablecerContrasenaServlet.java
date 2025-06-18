@@ -9,6 +9,28 @@ import com.example.webproyecto.utils.PasswordUtil;
 
 @WebServlet("/establecerContrasena")
 public class EstablecerContrasenaServlet extends HttpServlet {
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String codigo = request.getParameter("codigo");
+        
+        if (codigo == null || codigo.trim().isEmpty()) {
+            response.sendRedirect("login.jsp?error=codigo-invalido");
+            return;
+        }
+        
+        // Verificar que el código existe y es válido
+        CodigoDao codigoDao = new CodigoDao();
+        if (!codigoDao.findCodigo(codigo)) {
+            response.sendRedirect("login.jsp?error=codigo-expirado");
+            return;
+        }
+        
+        // Pasar el código al JSP
+        request.setAttribute("codigo", codigo);
+        request.getRequestDispatcher("establecerContrasena.jsp").forward(request, response);
+    }
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String codigo = request.getParameter("codigo");

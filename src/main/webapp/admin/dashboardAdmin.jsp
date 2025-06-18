@@ -1,12 +1,49 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ page import="java.util.*" %>
+<%
+    // Procesar datos del gráfico de líneas para JavaScript
+    List<Map<String, Object>> datosGraficoLineas = (List<Map<String, Object>>) request.getAttribute("datosGraficoLineas");
+    Map<String, Map<Integer, Integer>> datosPorZona = new HashMap<>();
+    
+    if (datosGraficoLineas != null && !datosGraficoLineas.isEmpty()) {
+        for (Map<String, Object> dato : datosGraficoLineas) {
+            String zona = (String) dato.get("zona");
+            Integer mes = (Integer) dato.get("mes");
+            Integer cantidad = (Integer) dato.get("formularios_completados");
+            
+            if (!datosPorZona.containsKey(zona)) {
+                datosPorZona.put(zona, new HashMap<>());
+            }
+            datosPorZona.get(zona).put(mes, cantidad);
+        }
+    }
+    
+    // Crear JSON para JavaScript
+    StringBuilder jsonDatos = new StringBuilder("{");
+    boolean primera = true;
+    for (Map.Entry<String, Map<Integer, Integer>> entry : datosPorZona.entrySet()) {
+        if (!primera) jsonDatos.append(",");
+        jsonDatos.append("'").append(entry.getKey()).append("':[");
+        
+        for (int mes = 1; mes <= 12; mes++) {
+            if (mes > 1) jsonDatos.append(",");
+            Integer valor = entry.getValue().get(mes);
+            jsonDatos.append(valor != null ? valor : 0);
+        }
+        jsonDatos.append("]");
+        primera = false;
+    }
+    jsonDatos.append("}");
+    
+    request.setAttribute("jsonDatosGrafico", jsonDatos.toString());
+%>
 <html>
 <head>
     <title>Dashboard Administrador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    <style>
         :root {
             --color-primary: #3498db;
             --color-bg: #f5f7fa;
@@ -15,24 +52,27 @@
             --sidebar-bg: #e6f0ff;
             --header-bg: #dbeeff;
         }
-        body {
+          body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e6f0ff 0%, #b3ccff 100%);
             margin: 0;
             padding: 0;
             color: #333;
+            overflow: hidden;
+            height: 100vh;
         }
+        
         .menu-toggle:checked ~ .sidebar { left: 0; }
         .menu-toggle:checked ~ .overlay { display: block; opacity: 1; }
-        /* Fix: NO empujar el contenido al abrir sidebar */
-        /* .menu-toggle:checked ~ .contenedor-principal { margin-left: 280px; } */
-        .contenedor-principal {
+          .contenedor-principal {
             width: 100%;
             margin: 0;
-            padding: 30px 30px 0 30px;
+            padding: 20px 20px 10px 20px;
             box-sizing: border-box;
-            min-height: calc(100vh - 70px);
+            height: calc(100vh - 56.8px);
+            overflow: hidden;
         }
+        
         .sidebar {
             position: fixed;
             top: 0;
@@ -49,12 +89,14 @@
             padding: 24px 0 20px 0;
             backdrop-filter: blur(6px);
         }
+        
         .sidebar-content {
             height: 100%;
             display: flex;
             flex-direction: column;
             gap: 18px;
         }
+        
         .sidebar-separator {
             width: 80%;
             height: 2px;
@@ -63,12 +105,17 @@
             margin: 18px auto 18px auto;
             opacity: 0.7;
         }
+        
         .sidebar-content .menu-links {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-        .sidebar-content .menu-links li { margin-bottom: 15px; }
+        
+        .sidebar-content .menu-links li { 
+            margin-bottom: 15px; 
+        }
+        
         .sidebar-content .menu-links a {
             display: flex;
             align-items: center;
@@ -82,16 +129,19 @@
             font-size: 16px;
             font-weight: bold;
         }
+        
         .sidebar-content .menu-links a i {
             margin-right: 10px;
             font-size: 18px;
         }
+        
         .sidebar-content .menu-links a:hover {
             background-color: #b3ccff;
             transform: scale(1.05);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
             color: #003366;
         }
+        
         .overlay {
             position: fixed;
             top: 0;
@@ -230,113 +280,136 @@
                 margin-left: 0;
                 gap: 1.2rem;
             }
-        }
-        /* DASHBOARD GRID */
-        .dashboard-wrapper {
-            background: rgba(255,255,255,0.85);
+        }        /* DASHBOARD GRID */        .dashboard-wrapper {
+            background: rgba(255,255,255,0.95);
             border-radius: 24px;
             box-shadow: 0 8px 32px rgba(52, 152, 219, 0.12), 0 1.5px 8px rgba(52, 152, 219, 0.10);
             border: 2px solid #b3ccff;
-            padding: 36px 32px 32px 32px;
-            max-width: 1200px;
-            margin: 40px auto 32px auto;
+            padding: 10px 15px;
+            max-width: 1400px;
+            margin: 0 auto;
             transition: box-shadow 0.2s;
-        }
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 32px;
-            padding: 16px 0;
-            margin: 0;
-            background: transparent;
-            border-radius: 18px;
-            box-shadow: none;
-        }
-        .dashboard-card {
-            background: #e6f0ff;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(52, 152, 219, 0.08);
-            border: 1.5px solid #c8dbff;
-            padding: 24px 18px 24px 18px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            font-size: 1.15em;
-            font-weight: 500;
-            color: #222;
-            min-height: 220px;
-            min-width: 0;
-            box-sizing: border-box;
-            overflow: hidden;
-            word-break: break-word;
-        }
-        .card-title {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: center;
-            word-break: break-word;
-            line-height: 1.2;
-            max-width: 100%;
-        }
-        .card-number {
-            font-size: 2.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #3498db;
-            word-break: break-word;
-        }
-        .pie-container {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        /* El gráfico ocupa dos filas */
-        .card-grafico-usuarios {
-            grid-row: 1 / span 2;
-            grid-column: 2 / 3;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-height: 100%;
             height: 100%;
-            /* Ajusta el padding para más espacio interno */
-            padding: 32px 32px 32px 32px;
-        }
-        .bar-container {
+            overflow: hidden;
+        }.dashboard-grid {
+            display: grid;
+            grid-template-columns: 0.6fr 1.4fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            padding: 0;
+            height: 100%;
+            align-items: stretch;
+        }        .main-chart-container {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+            border: 1px solid #e1ecf4;
+            padding: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }.future-chart-container {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+            border: 1px solid #e1ecf4;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 1.1rem;
+            min-height: 300px;
+        }        .bar-chart-container {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+            border: 1px solid #e1ecf4;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }        .chart-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 3px 0;
+        }        .chart-container {
+            position: relative;
+            height: 190px;
             width: 100%;
-            max-width: 1000px;
-            height: 500px;
+            max-width: 210px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        @media (max-width: 1100px) {
+        .bar-chart-container .chart-container {
+            height: calc(100% - 60px);
+            max-width: 100%;
+            width: 100%;
+        }        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }.legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }@media (max-width: 1100px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto auto;
-                gap: 24px;
-                padding: 8px 0;
+                gap: 10px;
             }
-            .dashboard-card {
-                min-width: unset;
-                min-height: 160px;
-                padding: 18px 8px;
+            .dashboard-wrapper {
+                padding: 10px;
+                margin: 0 auto;
+                height: 100%;
             }
-        }
-        @media (max-width: 700px) {
+            .contenedor-principal {
+                padding: 15px 15px 10px 15px;
+            }
+            .bar-chart-container {
+                grid-row: auto !important;
+            }
+        }        @media (max-width: 700px) {
+            .chart-legend {
+                gap: 10px;
+            }
+            .chart-container {
+                height: 180px;
+                max-width: 200px;
+            }
+            .dashboard-wrapper {
+                padding: 8px;
+                margin: 0 auto;
+                height: 100%;
+            }
+            .contenedor-principal {
+                padding: 10px 10px 5px 10px;
+            }
             .dashboard-grid {
-                gap: 14px;
-                padding: 4px 0;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                gap: 8px;
             }
-            .dashboard-card {
-                padding: 12px 4px;
+            .bar-chart-container {
+                grid-row: auto !important;
             }
         }
     </style>
@@ -401,181 +474,375 @@
 
 <!-- Contenido principal -->
 <main class="contenedor-principal">
-    <div class="dashboard-grid">
-        <!-- Primer cuadro arriba a la izquierda -->
-        <div class="dashboard-card card-encuestadores" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 180px; padding: 10px 0 10px 10px;">
-            <div style="flex: 0 0 100px; display: flex; align-items: center; justify-content: center;">
-                <div class="pie-container" style="width: 90px; height: 90px; position: relative;">
-                    <canvas id="pieEncuestadores" width="90" height="90"></canvas>
+    <div class="dashboard-wrapper">
+        <div class="dashboard-grid">
+            <!-- Gráfico de Encuestadores -->
+            <div class="main-chart-container" style="grid-column: 1; grid-row: 1;">
+                <h3 class="chart-title">Encuestadores</h3>
+                <div class="chart-container">
+                    <canvas id="encuestadoresChart"></canvas>
+                </div>
+                <div class="chart-legend" id="encuestadoresLegend">
+                    <!-- La leyenda se generará dinámicamente con JavaScript -->
                 </div>
             </div>
-            <div style="flex: 1; margin-left: 18px; display: flex; flex-direction: column; align-items: flex-start;">
-                <div class="card-title" style="font-size: 1.1em; margin-bottom: 10px;">Encuestadores</div>
-                <ul style="list-style: none; padding: 0; margin: 0; font-size: 1em;">
-                    <li style="margin-bottom: 6px; display: flex; align-items: center;">
-                        <span style="display:inline-block;width:14px;height:14px;background:#2ecc71;border-radius:3px;margin-right:7px;"></span>
-                        <b>Activos:</b> <span style="margin-left:4px;">${encuestadoresActivos}</span>
-                    </li>
-                    <li style="display: flex; align-items: center;">
-                        <span style="display:inline-block;width:14px;height:14px;background:#e74c3c;border-radius:3px;margin-right:7px;"></span>
-                        <b>Inactivos:</b> <span style="margin-left:4px;">${encuestadoresDesactivos}</span>
-                    </li>
-                </ul>
+
+            <!-- Gráfico de Coordinadores -->
+            <div class="main-chart-container" style="grid-column: 1; grid-row: 2;">
+                <h3 class="chart-title">Coordinadores</h3>
+                <div class="chart-container">
+                    <canvas id="coordinadoresChart"></canvas>
+                </div>
+                <div class="chart-legend" id="coordinadoresLegend">
+                    <!-- La leyenda se generará dinámicamente con JavaScript -->
+                </div>
             </div>
-        </div>
-        <!-- Segundo cuadro abajo a la izquierda -->
-        <div class="dashboard-card card-coordinadores">
-            <div class="card-title">Número de coordinadores internos activos</div>
-            <div class="card-number" id="numCoordinadoresActivos">
-                ${coordinadoresActivos}
-            </div>
-            <div class="card-title" style="font-size:0.95em;color:#888;">Desactivados: ${coordinadoresDesactivos}</div>
-            <div class="pie-container">
-                <canvas id="pieCoordinadores"></canvas>
-            </div>
-        </div>
-        <!-- Gráfico a la derecha ocupando dos filas -->
-        <div class="dashboard-card card-grafico-usuarios">
-            <div class="card-title">Gráfico de usuarios por día en los últimos 7 días</div>
-            <div class="bar-container">
-                <canvas id="barUsuarios"></canvas>
+
+            <!-- Gráfico de líneas para formularios por zona -->
+            <div class="bar-chart-container" style="grid-column: 2; grid-row: 1 / -1;">
+                <h3 class="chart-title">Formularios por Zona Geográfica</h3>
+                <div class="chart-container">
+                    <canvas id="barChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </main>
+
 <script>
-    // Datos dinámicos desde el backend (asegúrate de que nunca sean null)
+    // Datos dinámicos desde el backend (con valores por defecto para prueba)
     const encuestadores = {
-        activos: Number('${encuestadoresActivos}' || 0),
-        desactivados: Number('${encuestadoresDesactivados}' || 0)
+        activos: Number('${encuestadoresActivos}') || 45,
+        inactivos: Number('${encuestadoresDesactivos}') || 8
     };
     const coordinadores = {
-        activos: Number('${coordinadoresActivos}' || 0),
-        desactivados: Number('${coordinadoresDesactivados}' || 0)
-    };
-    // Simulación de usuarios activos por día (puedes reemplazar por datos reales si los tienes)
-    const usuariosPorDia = {
-        labels: [
-            "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"
-        ],
-        data: [encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos, encuestadores.activos + coordinadores.activos]
+        activos: Number('${coordinadoresActivos}') || 12,
+        inactivos: Number('${coordinadoresDesactivos}') || 3
     };
 
     document.addEventListener("DOMContentLoaded", function() {
-        // Mostrar números
-        // document.getElementById("numEncuestadoresActivos").textContent = encuestadores.activos; // Eliminado porque ya no existe ese id
-        document.getElementById("numCoordinadoresActivos").textContent = coordinadores.activos;
+        // Calcular totales
+        const totalEncuestadores = encuestadores.activos + encuestadores.inactivos;
+        const totalCoordinadores = coordinadores.activos + coordinadores.inactivos;
 
-        // === GRÁFICO PASTEL DE ENCUESTADORES ACTIVO/INACTIVO CON NÚMERO CENTRAL ===
-        const ctxEncuestadores = document.getElementById('pieEncuestadores').getContext('2d');
-        const totalEncuestadores = encuestadores.activos + encuestadores.desactivados;
+        // Función para crear leyendas dinámicas
+        function createLegend(containerId, data, colors, labels) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            data.forEach((value, index) => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'legend-color';
+                colorBox.style.backgroundColor = colors[index];
+                
+                const text = document.createElement('span');
+                text.textContent = labels[index] + ': (' + value + ')';
+                
+                legendItem.appendChild(colorBox);
+                legendItem.appendChild(text);
+                container.appendChild(legendItem);
+            });
+        }
+
+        // Crear leyendas
+        createLegend('encuestadoresLegend', 
+            [encuestadores.activos, encuestadores.inactivos], 
+            ['#27ae60', '#e74c3c'], 
+            ['Activos', 'Inactivos']
+        );
+        
+        createLegend('coordinadoresLegend', 
+            [coordinadores.activos, coordinadores.inactivos], 
+            ['#3498db', '#f39c12'], 
+            ['Activos', 'Inactivos']
+        );
+
+        // Plugin para mostrar el número total en el centro del gráfico
         const centerTextPlugin = {
             id: 'centerText',
-            beforeDraw(chart) {
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return;
-                ctx.save();
-                ctx.font = 'bold 1.3em Segoe UI';
-                ctx.fillStyle = '#3498db';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(totalEncuestadores, (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
-                ctx.restore();
-            }
-        };
-        new Chart(ctxEncuestadores, {
-            type: 'doughnut',
-            data: {
-                labels: [
-                    `Activos (${encuestadores.activos})`,
-                    `Inactivos (${encuestadores.desactivados})`
-                ],
-                datasets: [{
-                    data: [encuestadores.activos, encuestadores.desactivados],
-                    backgroundColor: ['#2ecc71', '#e74c3c'],
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                cutout: '65%',
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                let value = context.parsed;
-                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                let percent = total > 0 ? Math.round((value / total) * 100) : 0;
-                                return `${label}: ${value} (${percent}%)`;
-                            }
-                        }
-                    }
-                },
-            plugins: [centerTextPlugin]
-        });
-        // El número total ya está en el div #totalEncuestadores, que es transparente y no tapa el canvas.
-
-        // Pie Coordinadores (opcional: igual que encuestadores)
-        new Chart(document.getElementById('pieCoordinadores'), {
-            type: 'doughnut',
-            data: {
-                labels: [
-                    `Activos (${coordinadores.activos})`,
-                    `Desactivados (${coordinadores.desactivados})`
-                ],
-                datasets: [{
-                    data: [coordinadores.activos, coordinadores.desactivados],
-                    backgroundColor: ['#2ecc71', '#e74c3c'],
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                cutout: '70%',
-                plugins: {
-                    legend: { display: true, position: 'right' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                let value = context.parsed;
-                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                let percent = total > 0 ? Math.round((value / total) * 100) : 0;
-                                return `${label}: ${value} (${percent}%)`;
-                            }
-                        }
-                    },
+            beforeDraw: function(chart) {
+                if (chart.config.type === 'doughnut') {
+                    const width = chart.width;
+                    const height = chart.height;
+                    const ctx = chart.ctx;
+                    
+                    ctx.restore();
+                    const fontSize = (height / 114).toFixed(2);
+                    ctx.font = fontSize + "em sans-serif";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#333";
+                    
+                    const total = chart.config.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    const text = total.toString();
+                    const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                    const textY = height / 2;
+                    
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
                 }
             }
-        });
+        };
 
-        // Bar Usuarios por día
-        new Chart(document.getElementById('barUsuarios'), {
-            type: 'bar',
+        // Crear el gráfico de Encuestadores
+        const encCtx = document.getElementById('encuestadoresChart').getContext('2d');
+        new Chart(encCtx, {
+            type: 'doughnut',
             data: {
-                labels: usuariosPorDia.labels,
+                labels: ['Activos', 'Inactivos'],
                 datasets: [{
-                    label: 'Usuarios activos',
-                    data: usuariosPorDia.data,
-                    backgroundColor: '#3498db',
-                    borderRadius: 8,
-                    maxBarThickness: 38
+                    data: [encuestadores.activos, encuestadores.inactivos],
+                    backgroundColor: ['#27ae60', '#e74c3c'],
+                    borderColor: ['#ffffff', '#ffffff'],
+                    borderWidth: 3,
+                    hoverBorderWidth: 5,
+                    hoverBorderColor: '#ffffff'
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
+                cutout: '60%',
                 plugins: {
-                    legend: { display: false }
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#3498db',
+                        borderWidth: 2,
+                        cornerRadius: 10,
+                        padding: 12,
+                        displayColors: true,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            title: function(context) {
+                                return 'Encuestadores ' + context[0].label;
+                            },
+                            label: function(context) {
+                                const value = context.parsed;
+                                return 'Cantidad: ' + value + ' usuarios';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                hover: { animationDuration: 300 }
+            },
+            plugins: [centerTextPlugin]
+        });
+
+        // Crear el gráfico de Coordinadores
+        const coordCtx = document.getElementById('coordinadoresChart').getContext('2d');
+        new Chart(coordCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Activos', 'Inactivos'],
+                datasets: [{
+                    data: [coordinadores.activos, coordinadores.inactivos],
+                    backgroundColor: ['#3498db', '#f39c12'],
+                    borderColor: ['#ffffff', '#ffffff'],
+                    borderWidth: 3,
+                    hoverBorderWidth: 5,
+                    hoverBorderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#3498db',
+                        borderWidth: 2,
+                        cornerRadius: 10,
+                        padding: 12,
+                        displayColors: true,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            title: function(context) {
+                                return 'Coordinadores ' + context[0].label;
+                            },
+                            label: function(context) {
+                                const value = context.parsed;
+                                return 'Cantidad: ' + value + ' usuarios';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                hover: { animationDuration: 300 }
+            },
+            plugins: [centerTextPlugin]
+        });        // Crear el gráfico de líneas para formularios por zona
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        
+        // Obtener datos reales del backend o usar fallback
+        const datosReales = <c:out value="${jsonDatosGrafico}" escapeXml="false" />;
+        
+        // Datos de fallback para cuando no hay datos del backend
+        const datosEjemplo = {
+            'Zona Norte': [45, 52, 48, 61, 55, 67, 73, 69, 62, 58, 64, 71],
+            'Zona Sur': [38, 42, 35, 48, 45, 52, 58, 54, 49, 45, 51, 58],
+            'Zona Este': [25, 28, 32, 35, 38, 42, 46, 43, 40, 37, 41, 44],
+            'Zona Oeste': [30, 33, 29, 36, 32, 39, 42, 38, 35, 33, 37, 40]
+        };
+        
+        // Usar datos reales si están disponibles, sino usar ejemplos
+        const datosAUsar = Object.keys(datosReales).length > 0 ? datosReales : datosEjemplo;
+        
+        // Función para obtener datos por zona y mes
+        function getDatosMes(zona, mes) {
+            if (datosAUsar[zona] && datosAUsar[zona][mes - 1] !== undefined) {
+                return datosAUsar[zona][mes - 1];
+            }
+            return 0;
+        }
+        
+        // Obtener las zonas disponibles dinámicamente
+        const zonasDisponibles = Object.keys(datosAUsar);
+        const colores = ['#e74c3c', '#27ae60', '#3498db', '#f39c12', '#9b59b6', '#e67e22', '#1abc9c', '#34495e'];
+        
+        const datasets = zonasDisponibles.map((zona, index) => ({
+            label: zona,
+            data: [
+                getDatosMes(zona, 1), getDatosMes(zona, 2), getDatosMes(zona, 3),
+                getDatosMes(zona, 4), getDatosMes(zona, 5), getDatosMes(zona, 6),
+                getDatosMes(zona, 7), getDatosMes(zona, 8), getDatosMes(zona, 9),
+                getDatosMes(zona, 10), getDatosMes(zona, 11), getDatosMes(zona, 12)
+            ],
+            borderColor: colores[index % colores.length],
+            backgroundColor: colores[index % colores.length].replace('rgb', 'rgba').replace(')', ', 0.1)'),
+            borderWidth: 3,
+            pointBackgroundColor: colores[index % colores.length],
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            tension: 0.4
+        }));
+
+        const formulariosData = {
+            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+            datasets: datasets
+        };
+
+        new Chart(barCtx, {
+            type: 'line',
+            data: formulariosData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1 }
+                        max: 80,
+                        ticks: {
+                            stepSize: 10,
+                            color: '#666',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: '#e1e1e1',
+                            lineWidth: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Formularios',
+                            color: '#666',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#666',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: '#e1e1e1',
+                            lineWidth: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Meses del Año',
+                            color: '#666',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
                     }
+                },                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#3498db',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return context.dataset.label + ': ' + (context.parsed.y || 'Sin datos') + ' formularios';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                hover: {
+                    animationDuration: 300
                 }
             }
         });
     });
-    </script>
+</script>
 </body>
 </html>

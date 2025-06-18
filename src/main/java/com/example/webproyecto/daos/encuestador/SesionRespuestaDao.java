@@ -256,10 +256,62 @@ public class SesionRespuestaDao {
             }
 
         } catch (SQLException e) {
+            e.printStackTrace();        }
+
+        return resumen;
+    }
+
+    public List<Map<String, Object>> obtenerFormulariosCompletadosPorZonaYMes() {
+        List<Map<String, Object>> datos = new ArrayList<>();
+
+        String sql = """
+            SELECT 
+                zona,
+                año,
+                mes,
+                CASE mes
+                    WHEN 4 THEN 'Abril'
+                    WHEN 5 THEN 'Mayo'
+                    WHEN 6 THEN 'Junio'
+                    ELSE CONCAT('Mes ', mes)
+                END as nombre_mes,
+                formularios_completados
+            FROM (
+                SELECT 
+                    z.nombrezona as zona,
+                    YEAR(sr.fechaenvio) as año,
+                    MONTH(sr.fechaenvio) as mes,
+                    COUNT(*) as formularios_completados
+                FROM sesionrespuesta sr
+                JOIN asignacionformulario af ON sr.idasignacionformulario = af.idasignacionformulario
+                JOIN usuario u ON af.idencuestador = u.idusuario
+                JOIN distrito d ON u.iddistrito = d.iddistrito
+                JOIN zona z ON d.idzona = z.idzona
+                WHERE sr.fechaenvio IS NOT NULL
+                    AND sr.estadoterminado = 1
+                    AND sr.fechaenvio >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                GROUP BY z.idzona, z.nombrezona, YEAR(sr.fechaenvio), MONTH(sr.fechaenvio)
+            ) as datos_agrupados
+            ORDER BY año DESC, mes DESC, zona
+        """;        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> fila = new HashMap<>();
+                fila.put("zona", rs.getString("zona"));
+                fila.put("año", rs.getInt("año"));
+                fila.put("mes", rs.getInt("mes"));
+                fila.put("nombre_mes", rs.getString("nombre_mes"));
+                fila.put("formularios_completados", rs.getInt("formularios_completados"));
+                datos.add(fila);
+            }
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return resumen;
+        return datos;
     }
 
 }

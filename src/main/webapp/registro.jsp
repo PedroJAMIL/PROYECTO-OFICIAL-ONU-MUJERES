@@ -186,11 +186,24 @@
           <c:forEach items="${distritos}" var="distrito">
             <option value="${distrito.idDistrito}">${distrito.nombreDistrito}</option>
           </c:forEach>
-        </select>
-
-        <input type="email" name="correo" placeholder="Correo electrónico" required>
-        <input type="password" name="contrasenha" placeholder="Contraseña" required>
-        <input type="password" name="confirmarContrasenha" placeholder="Confirmar Contraseña" required>
+        </select>        <input type="email" name="correo" placeholder="Correo electrónico" required>
+        <input type="password" name="contrasenha" placeholder="Contraseña (mínimo 8 caracteres)" required>
+        <input type="password" name="confirmarContrasenha" placeholder="Confirmar contraseña" required>
+        
+        <!-- Mensaje informativo sobre el registro directo -->
+        <div style="background: #e8f5e8; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; margin: 15px 0; text-align: center; color: #2e7d32; font-size: 14px;">
+          <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+          <strong>Registro directo:</strong><br>
+          Tu cuenta se activará inmediatamente y podrás iniciar sesión.
+        </div>
+        
+        <!-- CÓDIGO ORIGINAL DE VERIFICACIÓN POR CORREO (COMENTADO)
+        <div style="background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin: 15px 0; text-align: center; color: #1976d2; font-size: 14px;">
+          <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+          <strong>Proceso de verificación:</strong><br>
+          Te enviaremos un correo con un enlace para establecer tu contraseña.
+        </div>
+        -->
 
         <button type="submit" class="login-btn">Registrarse</button>
 
@@ -206,8 +219,60 @@
 
   <!-- Pie de página -->
   <footer class="footer-bar">
-    Defensora mundial de la igualdad de género
-  </footer>
+    Defensora mundial de la igualdad de género  </footer>
 </div>
+
+<script>
+// Validación de contraseñas en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const contrasenhaInput = document.querySelector('input[name="contrasenha"]');
+    const confirmarInput = document.querySelector('input[name="confirmarContrasenha"]');
+    const form = document.querySelector('form');
+    
+    function validarContrasenhas() {
+        const contrasenha = contrasenhaInput.value;
+        const confirmar = confirmarInput.value;
+        
+        // Limpiar estilos previos
+        contrasenhaInput.style.borderColor = '#000';
+        confirmarInput.style.borderColor = '#000';
+        
+        // Validar longitud mínima
+        if (contrasenha.length > 0 && contrasenha.length < 8) {
+            contrasenhaInput.style.borderColor = '#ff4444';
+        }
+        
+        // Validar coincidencia
+        if (confirmar.length > 0 && contrasenha !== confirmar) {
+            confirmarInput.style.borderColor = '#ff4444';
+        } else if (confirmar.length > 0 && contrasenha === confirmar && contrasenha.length >= 8) {
+            confirmarInput.style.borderColor = '#44aa44';
+            contrasenhaInput.style.borderColor = '#44aa44';
+        }
+    }
+    
+    contrasenhaInput.addEventListener('input', validarContrasenhas);
+    confirmarInput.addEventListener('input', validarContrasenhas);
+    
+    // Validación final al enviar
+    form.addEventListener('submit', function(e) {
+        const contrasenha = contrasenhaInput.value;
+        const confirmar = confirmarInput.value;
+        
+        if (contrasenha.length < 8) {
+            e.preventDefault();
+            alert('La contraseña debe tener al menos 8 caracteres');
+            return false;
+        }
+        
+        if (contrasenha !== confirmar) {
+            e.preventDefault();
+            alert('Las contraseñas no coinciden');
+            return false;
+        }
+    });
+});
+</script>
+
 </body>
 </html>
