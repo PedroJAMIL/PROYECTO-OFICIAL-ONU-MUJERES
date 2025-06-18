@@ -1,4 +1,5 @@
 package com.example.webproyecto.beans;
+import java.util.Date;
 
 public class Usuario {
     private int idUsuario;
@@ -17,7 +18,7 @@ public class Usuario {
     private Integer idDistritoTrabajo; // Nuevo: Distrito de Trabajo
     private Integer idZonaTrabajo;     // Nuevo: Zona de Trabajo
     // -------------------------
-    
+
     private java.util.Date fechaRegistro;
 
     // Getters y Setters
@@ -54,7 +55,7 @@ public class Usuario {
     public Integer getIdZonaTrabajo() { return idZonaTrabajo; }
     public void setIdZonaTrabajo(Integer idZonaTrabajo) { this.idZonaTrabajo = idZonaTrabajo; }
     // ---------------------------------
-    
+
     public java.util.Date getFechaRegistro() { return fechaRegistro; }
     public void setFechaRegistro(java.util.Date fechaRegistro) { this.fechaRegistro = fechaRegistro; }
 }
