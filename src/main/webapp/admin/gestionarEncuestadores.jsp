@@ -567,6 +567,12 @@
           <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
           <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
         </select>
+        <select name="zona" class="select-zona">
+          <option value="">Todas las zonas</option>
+          <c:forEach var="zona" items="${zonas}">
+            <option value="${zona.idZona}" ${zonaSeleccionada == zona.idZona ? 'selected' : ''}>${zona.nombreZona}</option>
+          </c:forEach>
+        </select>
         <button type="submit" class="btn-filtrar">
           <i class="fa fa-search"></i> Filtrar
         </button>

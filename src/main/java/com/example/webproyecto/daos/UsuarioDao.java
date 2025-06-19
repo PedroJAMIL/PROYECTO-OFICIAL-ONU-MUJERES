@@ -276,6 +276,7 @@ public class UsuarioDao {
                 usuario.setDni(rs.getString("dni"));
                 usuario.setIdEstado(rs.getInt("idEstado"));
                 usuario.setIdDistrito(rs.getInt("idDistrito"));
+                usuario.setIdZonaTrabajo(rs.getObject("idZonaTrabajo") != null ? rs.getInt("idZonaTrabajo") : null);
                 usuario.setFechaRegistro(rs.getTimestamp("fecha_registro"));
 
                 CredencialDTO credencial = new CredencialDTO();
@@ -578,24 +579,21 @@ public class UsuarioDao {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                Usuario u = new Usuario();
-                u.setIdUsuario(rs.getInt("idUsuario"));
-                u.setNombre(rs.getString("nombre"));
-                u.setApellidopaterno(rs.getString("apellidopaterno"));
-                u.setApellidomaterno(rs.getString("apellidomaterno"));
-                u.setDni(rs.getString("dni"));
-                u.setDireccion(rs.getString("direccion"));
-                u.setIdDistrito(rs.getInt("idDistrito"));
-                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo"));
-                u.setIdRol(rs.getInt("idRol"));
-                u.setIdEstado(rs.getInt("idEstado"));
-                u.setFoto(rs.getString("foto"));
-                u.setFechaRegistro(rs.getTimestamp("fecha_registro"));
+                Usuario usuario = new Usuario();
+                usuario.setIdUsuario(rs.getInt("idUsuario"));
+                usuario.setNombre(rs.getString("nombre"));
+                usuario.setApellidopaterno(rs.getString("apellidopaterno"));
+                usuario.setApellidomaterno(rs.getString("apellidomaterno"));
+                usuario.setDni(rs.getString("dni"));
+                usuario.setIdEstado(rs.getInt("idEstado"));
+                usuario.setIdDistrito(rs.getInt("idDistrito"));
+                usuario.setIdZonaTrabajo(rs.getObject("idZonaTrabajo") != null ? rs.getInt("idZonaTrabajo") : null);
+                usuario.setFechaRegistro(rs.getTimestamp("fecha_registro"));
 
                 Credencial c = new Credencial();
                 c.setCorreo(rs.getString("correo"));
 
-                CoordinadorDTO dto = new CoordinadorDTO(u, c);
+                CoordinadorDTO dto = new CoordinadorDTO(usuario, c);
                 String zonaNombre = rs.getString("zonaTrabajoNombre");
                 if (zonaNombre != null && zonaNombre.toLowerCase().startsWith("zona ")) {
                     zonaNombre = zonaNombre.substring(5).trim();
@@ -808,9 +806,12 @@ public class UsuarioDao {
                 usuario.setDni(rs.getString("dni"));
                 usuario.setIdEstado(rs.getInt("idEstado"));
                 usuario.setIdDistrito(rs.getInt("idDistrito"));
+                usuario.setIdZonaTrabajo(rs.getObject("idZonaTrabajo") != null ? rs.getInt("idZonaTrabajo") : null);
                 usuario.setFechaRegistro(rs.getTimestamp("fecha_registro"));
+
                 CredencialDTO credencial = new CredencialDTO();
                 credencial.setCorreo(rs.getString("correo"));
+
                 EncuestadorDTO dto = new EncuestadorDTO();
                 dto.setUsuario(usuario);
                 dto.setCredencial(credencial);

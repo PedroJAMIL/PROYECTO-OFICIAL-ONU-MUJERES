@@ -2,6 +2,8 @@ package com.example.webproyecto.servlets.administrador;
 
 import com.example.webproyecto.daos.UsuarioDao;
 import com.example.webproyecto.dtos.EncuestadorDTO;
+import com.example.webproyecto.daos.encuestador.ZonaDao;
+import com.example.webproyecto.beans.Zona;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -31,8 +33,12 @@ public class GestionarEncuestadoresServlet extends HttpServlet {
         }
 
         UsuarioDao usuarioDao = new UsuarioDao();
+        ZonaDao zonaDao = new ZonaDao();
+        List<Zona> zonas = zonaDao.listarZonas();
+        request.setAttribute("zonas", zonas);
         String nombreFiltro = request.getParameter("nombre");
         String estadoFiltro = request.getParameter("estado");
+        String zonaFiltro = request.getParameter("zona");
         int paginaActual = 1;
         try {
             paginaActual = Integer.parseInt(request.getParameter("pagina"));
@@ -57,6 +63,13 @@ public class GestionarEncuestadoresServlet extends HttpServlet {
             }
         }
 
+        if (zonaFiltro != null && !zonaFiltro.isEmpty()) {
+            try {
+                int zonaInt = Integer.parseInt(zonaFiltro);
+                encuestadores.removeIf(e -> e.getUsuario().getIdZonaTrabajo() == null || e.getUsuario().getIdZonaTrabajo() != zonaInt);
+            } catch (NumberFormatException ignored) {}
+        }
+
         int totalEncuestadores = encuestadores.size();
         int totalPaginas = (int) Math.ceil((double) totalEncuestadores / ENCUESTADORES_POR_PAGINA);
         if (totalPaginas == 0) totalPaginas = 1;
@@ -68,10 +81,14 @@ public class GestionarEncuestadoresServlet extends HttpServlet {
         if (desde < 0) desde = 0;
         if (desde > hasta) desde = hasta;
 
+        // Guardar la lista completa filtrada en sesión para reportes
+        session.setAttribute("encuestadoresFiltrados", encuestadores);
+
         List<EncuestadorDTO> encuestadoresPagina = (totalEncuestadores == 0) ? java.util.Collections.emptyList() : encuestadores.subList(desde, hasta);
         request.setAttribute("encuestadores", encuestadoresPagina);
         request.setAttribute("paginaActual", paginaActual);
         request.setAttribute("totalPaginas", totalPaginas);
+        request.setAttribute("zonaSeleccionada", zonaFiltro);
 
         request.getRequestDispatcher("admin/gestionarEncuestadores.jsp").forward(request, response);
     }

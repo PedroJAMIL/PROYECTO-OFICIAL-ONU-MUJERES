@@ -2,6 +2,8 @@ package com.example.webproyecto.servlets.administrador;
 
 import com.example.webproyecto.dtos.CoordinadorDTO;
 import com.example.webproyecto.daos.UsuarioDao;
+import com.example.webproyecto.daos.encuestador.ZonaDao;
+import com.example.webproyecto.beans.Zona;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -34,8 +36,12 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
         }
 
         UsuarioDao usuarioDao = new UsuarioDao();
+        ZonaDao zonaDao = new ZonaDao();
+        List<Zona> zonas = zonaDao.listarZonas();
+        request.setAttribute("zonas", zonas);
         String nombreFiltro = request.getParameter("nombre");
         String estadoFiltro = request.getParameter("estado");
+        String zonaFiltro = request.getParameter("zona");
         int paginaActual = 1;
         try {
             paginaActual = Integer.parseInt(request.getParameter("pagina"));
@@ -59,6 +65,13 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {}
         }
 
+        if (zonaFiltro != null && !zonaFiltro.isEmpty()) {
+            try {
+                int zonaInt = Integer.parseInt(zonaFiltro);
+                coordinadores.removeIf(e -> e.getUsuario().getIdZonaTrabajo() == null || e.getUsuario().getIdZonaTrabajo() != zonaInt);
+            } catch (NumberFormatException ignored) {}
+        }
+
         int totalCoordinadores = coordinadores.size();
         int totalPaginas = (int) Math.ceil((double) totalCoordinadores / COORDINADORES_POR_PAGINA);
         if (totalPaginas == 0) totalPaginas = 1;
@@ -70,11 +83,15 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
         if (desde < 0) desde = 0;
         if (desde > hasta) desde = hasta;
 
+        // Guardar la lista completa filtrada en sesión para reportes
+        session.setAttribute("coordinadoresFiltrados", coordinadores);
+
         List<CoordinadorDTO> coordinadoresPagina = (totalCoordinadores == 0) ? java.util.Collections.emptyList() : coordinadores.subList(desde, hasta);
         System.out.println("[DEBUG] coordinadoresPagina.size()=" + (coordinadoresPagina != null ? coordinadoresPagina.size() : "null"));
         request.setAttribute("coordinadores", coordinadoresPagina);
         request.setAttribute("paginaActual", paginaActual);
         request.setAttribute("totalPaginas", totalPaginas);
+        request.setAttribute("zonaSeleccionada", zonaFiltro);
 
         System.out.println("[DEBUG] Antes de forward a gestionarCoordinadores.jsp");
         request.getRequestDispatcher("admin/gestionarCoordinadores.jsp").forward(request, response);

@@ -10,6 +10,7 @@ public class UsuarioDTO implements Serializable {
     private String dni;
     private Integer idEstado;
     private Integer idDistrito;
+    private Integer idZonaTrabajo;
     private java.util.Date fechaRegistro;
 
     public UsuarioDTO() {}
@@ -34,6 +35,9 @@ public class UsuarioDTO implements Serializable {
 
     public Integer getIdDistrito() { return idDistrito; }
     public void setIdDistrito(Integer idDistrito) { this.idDistrito = idDistrito; }
+
+    public Integer getIdZonaTrabajo() { return idZonaTrabajo; }
+    public void setIdZonaTrabajo(Integer idZonaTrabajo) { this.idZonaTrabajo = idZonaTrabajo; }
 
     public java.util.Date getFechaRegistro() { return fechaRegistro; }
     public void setFechaRegistro(java.util.Date fechaRegistro) { this.fechaRegistro = fechaRegistro; }

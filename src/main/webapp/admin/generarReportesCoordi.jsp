@@ -438,7 +438,6 @@
             <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
-            <li><a href="GenerarReportesCoordiServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
             <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
         </ul>
     </div>
@@ -481,74 +480,53 @@
     </div>
 </header>
 <main class="contenedor-principal">
-    <form id="formReporteCoordi" style="position:relative; min-height: unset; padding-bottom: 30px;" method="get" action="GenerarReportesCoordiServlet">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; position: relative;">
-            <div class="reportes-form-row" style="margin: 0; gap: 12px; position: relative;">
-                <div style="position: relative; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-map-location-dot" style="color: #357ae8; font-size: 18px;"></i>
-                    <select name="zonaTrabajo" class="select-fechas" id="selectZona" style="width: 220px;">
-                        <option value="">Todas las zonas</option>
-                        <c:forEach var="zona" items="${zonas}">
-                            <option value="${zona.idZona}">${zona.nombreZona}</option>
-                        </c:forEach>
-                    </select>
-                </div>
-                <div style="position: relative; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-calendar-days" style="color: #357ae8; font-size: 18px;"></i>
-                    <select name="rangoFechas" class="select-fechas" id="selectFechas" style="width: 220px;">
-                        <option value="">Rango de fechas</option>
-                        <option value="semana">Última semana</option>
-                        <option value="mes">Último mes</option>
-                        <option value="tresmeses">Últimos 3 meses</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-reporte"><i class="fa-solid fa-filter"></i> Filtrar</button>
-            </div>
+    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; gap: 10px; position: relative;">
+        <form method="get" action="GenerarReportesCoordiServlet" style="margin:0;">
             <button type="submit" class="btn-descargar btn-descargar-mini" name="action" value="excel" title="Descargar Excel">
                 <i class="fa-solid fa-file-excel"></i>
             </button>
-        </div>
-        <div class="contenedor" style="margin-top: 0;">
-            <h2>Vista previa de Reporte de Coordinadores</h2>
-            <div class="tabla-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>DNI</th>
-                            <th>Correo electrónico</th>
-                            <th>Zona</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${empty coordinadores}">
+        </form>
+    </div>
+    <div class="contenedor" style="margin-top: 0;">
+        <h2>Vista previa de Reporte de Coordinadores</h2>
+        <div class="tabla-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>DNI</th>
+                        <th>Correo electrónico</th>
+                        <th>Zona</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:choose>
+                        <c:when test="${empty coordinadores}">
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:#888; font-style:italic; background:#f5f7fa;">No se encontró información para los filtros seleccionados.</td>
+                            </tr>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach var="coordinador" items="${coordinadores}">
                                 <tr>
-                                    <td colspan="5" style="text-align:center; color:#888; font-style:italic; background:#f5f7fa;">No se encontró información para los filtros seleccionados.</td>
+                                    <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
+                                    <td>${coordinador.usuario.dni}</td>
+                                    <td>${coordinador.credencial.correo}</td>
+                                    <td>${coordinador.zonaTrabajoNombre}</td>
+                                    <td>
+                                        <span class="${coordinador.usuario.idEstado == 2 ? 'estado-activo' : 'estado-inactivo'}">
+                                            ${coordinador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
+                                        </span>
+                                    </td>
                                 </tr>
-                            </c:when>
-                            <c:otherwise>
-                                <c:forEach var="coordinador" items="${coordinadores}">
-                                    <tr>
-                                        <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
-                                        <td>${coordinador.usuario.dni}</td>
-                                        <td>${coordinador.credencial.correo}</td>
-                                        <td>${coordinador.zonaTrabajoNombre}</td>
-                                        <td>
-                                            <span class="${coordinador.usuario.idEstado == 2 ? 'estado-activo' : 'estado-inactivo'}">
-                                                ${coordinador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </tbody>
+            </table>
         </div>
-    </form>
+    </div>
 </main>
 </body>
 </html>

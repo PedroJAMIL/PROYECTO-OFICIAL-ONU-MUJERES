@@ -609,20 +609,26 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2 style="margin-bottom: 0.5em;">Gestión de Coordinadores</h2>
         </div>
-        <div style="display: flex; justify-content: flex-start; margin-left: 40px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: flex-start; margin-bottom: 24px;">
             <form method="get" action="GestionarCoordinadoresServlet" style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" name="busqueda" placeholder="Buscar por nombre o DNI" class="input-busqueda" />
-                <select name="zona" class="select-zona">
+                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" class="input-busqueda" />
+                <select name="estado" class="select-zona">
                     <option value="">Todos</option>
                     <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
                     <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
                 </select>
-                <button type="submit" class="btn-filtrar" style="min-width: 120px;">
+                <select name="zona" class="select-zona">
+                    <option value="">Todas las zonas</option>
+                    <c:forEach var="zona" items="${zonas}">
+                        <option value="${zona.idZona}" ${zonaSeleccionada == zona.idZona ? 'selected' : ''}>${zona.nombreZona}</option>
+                    </c:forEach>
+                </select>
+                <button type="submit" class="btn-filtrar">
                     <i class="fa fa-search"></i> Filtrar
                 </button>
                 <button type="submit" formaction="GenerarReportesCoordiServlet" class="btn-excel">
-            <i class="fa fa-file-excel-o" style="margin-right: 6px;"></i> Excel
-          </button>
+                    <i class="fa fa-file-excel-o" style="margin-right: 6px;"></i> Excel
+                </button>
             </form>
         </div>
         <div class="tabla-container">
@@ -651,7 +657,7 @@
                                 <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
                                 <td>${coordinador.usuario.dni}</td>
                                 <td>${coordinador.credencial.correo}</td>
-                                <td>${coordinador.usuario.idDistrito}</td>
+                                <td>${coordinador.zonaTrabajoNombre}</td>
                                 <td class="estado-col">
                                     <button class="btn-cambiar-estado ${esActivo ? 'btn-estado-activo' : 'btn-estado-inactivo'}"
                                             data-id="${coordinador.usuario.idUsuario}"

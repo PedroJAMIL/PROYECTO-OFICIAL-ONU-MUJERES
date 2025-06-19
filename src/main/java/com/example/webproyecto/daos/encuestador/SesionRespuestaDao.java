@@ -261,5 +261,64 @@ public class SesionRespuestaDao {
 
         return resumen;
     }
+    public List<Map<String, Object>> obtenerFormulariosCompletadosPorZonaYMes() {
+        List<Map<String, Object>> resultados = new ArrayList<>();
 
+        String sql = """
+            SELECT 
+                z.nombrezona as zona,
+                YEAR(sr.fechaenvio) as año,
+                MONTH(sr.fechaenvio) as mes,
+                CASE MONTH(sr.fechaenvio)
+                    WHEN 1 THEN 'Enero'
+                    WHEN 2 THEN 'Febrero'
+                    WHEN 3 THEN 'Marzo'
+                    WHEN 4 THEN 'Abril'
+                    WHEN 5 THEN 'Mayo'
+                    WHEN 6 THEN 'Junio'
+                    WHEN 7 THEN 'Julio'
+                    WHEN 8 THEN 'Agosto'
+                    WHEN 9 THEN 'Septiembre'
+                    WHEN 10 THEN 'Octubre'
+                    WHEN 11 THEN 'Noviembre'
+                    WHEN 12 THEN 'Diciembre'
+                    ELSE CONCAT('Mes ', MONTH(sr.fechaenvio))
+                END as nombre_mes,
+                COUNT(*) as formularios_completados
+            FROM sesionrespuesta sr
+            JOIN asignacionformulario af ON sr.idasignacionformulario = af.idasignacionformulario
+            JOIN usuario u ON af.idencuestador = u.idusuario
+            JOIN distrito d ON u.iddistrito = d.iddistrito
+            JOIN zona z ON d.idzona = z.idzona
+            WHERE sr.fechaenvio IS NOT NULL
+                AND sr.estadoterminado = 1
+                AND sr.fechaenvio >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY z.nombrezona, YEAR(sr.fechaenvio), MONTH(sr.fechaenvio)
+            ORDER BY año DESC, mes DESC, zona
+        """;
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+
+            System.out.println("[DEBUG] Ejecutando consulta de formularios por zona y mes");
+            while (rs.next()) {
+                Map<String, Object> fila = new HashMap<>();
+                fila.put("zona", rs.getString("zona"));
+                fila.put("año", rs.getInt("año"));
+                fila.put("mes", rs.getInt("mes"));
+                fila.put("nombre_mes", rs.getString("nombre_mes"));
+                fila.put("formularios_completados", rs.getInt("formularios_completados"));
+                System.out.println("[DEBUG] Fila: " + fila);
+                resultados.add(fila);
+            }
+            System.out.println("[DEBUG] Total filas: " + resultados.size());
+            return resultados;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return resultados;
+    }
 }

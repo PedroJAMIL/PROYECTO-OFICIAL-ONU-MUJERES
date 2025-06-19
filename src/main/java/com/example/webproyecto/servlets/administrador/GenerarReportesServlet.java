@@ -19,6 +19,10 @@ public class GenerarReportesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        List<EncuestadorDTO> encuestadoresFiltrados = (List<EncuestadorDTO>) session.getAttribute("encuestadoresFiltrados");
+        request.setAttribute("encuestadores", encuestadoresFiltrados);
+        request.getRequestDispatcher("admin/generarReportes.jsp").forward(request, response);
         try {
             String tipo = request.getParameter("tipo");
             String action = request.getParameter("action");

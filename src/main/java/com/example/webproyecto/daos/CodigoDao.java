@@ -12,7 +12,7 @@ public class CodigoDao extends BaseDao {
         String sql = "INSERT INTO codigo_verificacion (idusuario, codigo) VALUES (?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, usuario.getUsuarioId());
+            pstmt.setInt(1, usuario.getIdUsuario());
             pstmt.setString(2, codigo);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -30,8 +30,8 @@ public class CodigoDao extends BaseDao {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     usuario = new Usuario();
-                    usuario.setUsuarioId(rs.getInt("idusuario"));
-                    usuario.setCorreo(correo); // O puedes omitir si no tienes setCorreo
+                    usuario.setIdUsuario(rs.getInt("idusuario"));
+                    // usuario.setCorreo(correo); // Eliminado: Usuario no tiene setCorreo
                     // ...otros campos...
                 }
             }
