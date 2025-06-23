@@ -1,11 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8" />
-    <title>Gestionar Formularios</title>
+    <title>Lista de Respuestas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
@@ -34,7 +32,7 @@
 
         .menu-toggle:checked ~ .sidebar { left: 0; }
         .menu-toggle:checked ~ .overlay { display: block; opacity: 1; }
-        .contenedor-principal {
+        .contenedor-principal, .main-content {
             width: 100%;
             margin: 0;
             padding: 30px 0 0 0;
@@ -126,7 +124,7 @@
             height: 56.8px;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: flex-start; /* <--- Cambia center por flex-start */
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
             z-index: 800;
@@ -140,7 +138,7 @@
             justify-content: flex-start;
             gap: 1rem;
             margin: 0;
-            padding: 0 30px;
+            padding: 0 30px; /* igual que en CargarArchivos.jsp */
             box-sizing: border-box;
         }
         .header-left {
@@ -232,6 +230,7 @@
             background: #e6f0ff;
             color: #007bff;
         }
+        /* Responsive igual que CargarArchivos.jsp */
         @media (max-width: 600px) {
             .header-bar {
                 flex-direction: column;
@@ -247,11 +246,13 @@
                 gap: 1.2rem;
             }
         }
+        /* CONTENIDO PRINCIPAL */
         .main-content {
-            width: 90%;
-            max-width: 1200px;
-            margin: 1rem auto;
-            min-height: calc(100vh - 70px - 40px); /* Resta header y footer */
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 30px 30px 0 30px; /* espacio lateral igual que otros archivos */
+            box-sizing: border-box;
         }
         .select-filtros {
             margin-bottom: 20px;
@@ -288,6 +289,7 @@
         .encuesta-nombre {
             flex: 1;
         }
+        /* Switch */
         .switch {
             position: relative;
             display: inline-block;
@@ -325,6 +327,24 @@
         .switch input:checked + .slider:before {
             transform: translateX(22px);
         }
+        /* Botón Ver Respuesta */
+        .btn-respuesta {
+            text-decoration: none;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #5e81ac;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            font-size: 13.3px;
+        }
+        .btn-respuesta:hover {
+            background-color: #4c669f;
+        }
+        /* Botón Ingresar Respuesta */
         .btn-ingresar {
             background: #3b5fc0;
             color: #fff;
@@ -343,6 +363,7 @@
             cursor: not-allowed;
             border: 1px solid #ccc;
         }
+        /* Paginación */
         .pagination {
             display: flex;
             justify-content: center;
@@ -361,37 +382,6 @@
             font-weight: bold;
             text-decoration: underline;
         }
-        .contenedor-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            justify-content: center;
-            padding: 30px;
-        }
-        .bloque-personalizado {
-            background-color: #c6e4f0;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            border: 1px solid #333;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .btn-respuesta {
-            text-decoration: none;
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background-color: #5e81ac;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-            font-size: 13.3px;
-        }
-        .btn-respuesta:hover {
-            background-color: #4c669f;
-        }
         @media (max-width: 900px) {
             .main-content {
                 max-width: 100%;
@@ -407,11 +397,11 @@
     <div class="sidebar-content">
         <div class="sidebar-separator"></div>
         <ul class="menu-links">
-            <li><a href="DashboardServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
-            <li><a href="GestionEncuestadoresServlet"><i class="fa-solid fa-users"></i> Gestionar Encuestadores</a></li>
-            <li><a href="GestionarFormulariosServlet"><i class="fa-solid fa-file-alt"></i> Gestionar Formularios</a></li>
-            <li><a href="CargarArchivosServlet"><i class="fa-solid fa-upload"></i> Cargar Archivos</a></li>
-            <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
+            <li><a href="${pageContext.request.contextPath}/DashboardServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
+            <li><a href="${pageContext.request.contextPath}/GestionEncuestadoresServlet"><i class="fa-solid fa-users"></i> Gestionar Encuestadores</a></li>
+            <li><a href="${pageContext.request.contextPath}/GestionarFormulariosServlet"><i class="fa-solid fa-file-alt"></i> Gestionar Formularios</a></li> <%-- Puedes cambiar el texto si quieres --%>
+            <li><a href="${pageContext.request.contextPath}/CargarArchivosServlet"><i class="fa-solid fa-upload"></i> Cargar Archivos</a></li>
+            <li><a href="${pageContext.request.contextPath}/CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
         </ul>
     </div>
 </div>
@@ -452,40 +442,69 @@
     </div>
 </header>
 
-<main class="main-content">
-    <div class="contenedor-grid">
-        <c:choose>
-            <c:when test="${not empty listaFormularios}">
-                <c:forEach var="formulario" items="${listaFormularios}">
-                    <section class="bloque-personalizado">
-                        <div style="display: flex; justify-content: center; margin-bottom: 15px;">
-                            <img src="imagenes/formulario_foto.png" alt="Foto de formulario" style="width: 150px; height: 150px; object-fit: cover; border: 1px solid #333;">
-                        </div>
-                        <div style="background-color: #ffffff; border: 1px solid #333; padding: 10px; margin-bottom: 15px; border-radius: 10px; text-align: center;">
-                            <p style="margin: 0;">
-                                    ${formulario.titulo}
-                            </p>
-                        </div>
-                        <div style="display: flex; justify-content: flex-end;">
-                            <form action="ListarRespuestasFormularioServlet" method="get">
-                                <input type="hidden" name="idFormulario" value="${formulario.idFormulario}" />
-                                <button type="submit" class="btn-respuesta">Ver Archivos</button>
-                            </form>
-                        </div>
-                    </section>
-                </c:forEach>
-            </c:when>
-            <c:otherwise>
-                <p style="padding: 15px; text-align: center; color: #555;">No hay formularios disponibles.</p>
-            </c:otherwise>
-        </c:choose>
-    </div>
-    <div class="pagination">
-        <span>&lt;</span>
-        <span>2</span>
-        <span class="active">3</span>
-        <span>4</span>
-        <span>&gt;</span>
+<main class="contenedor-principal">
+    <div class="main-content">
+        <h2>Archivos Cargados</h2> <%-- Nuevo título para la sección --%>
+
+        <div class="select-filtros">
+            <select>
+                <option value="">Filtrar por usuario (funcionalidad pendiente)</option>
+                <%-- Si quisieras filtrar por usuario, necesitarías pasar una lista de usuarios desde el servlet --%>
+                <%-- y ajustar el DAO para que el método obtenerArchivosCargados(int idUsuario) sea llamado con el ID seleccionado --%>
+            </select>
+        </div>
+
+        <div class="encuestas-list">
+            <c:choose>
+                <c:when test="${not empty archivosCargados}">
+                    <table style="width:100%; background:#e6f0ff; border-radius:12px;">
+                        <thead>
+                            <tr style="background:#b3ccff;">
+                                <th style="padding:8px;">Nombre del archivo</th>
+                                <th style="padding:8px;">Subido por</th>
+                                <th style="padding:8px;">Fecha de subida</th>
+                                <th style="padding:8px;">Ver respuestas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="archivo" items="${archivosCargados}">
+                                <tr>
+                                    <td style="padding:8px;">${archivo.nombreArchivoOriginal}</td>
+                                    <td style="padding:8px;">${archivo.nombreUsuarioQueCargo}</td>
+                                    <td style="padding:8px;">
+                                        <c:choose>
+                                            <c:when test="${not empty archivo.fechaCarga}">
+                                                ${fn:replace(archivo.fechaCarga, 'T', ' ')}
+                                            </c:when>
+                                            <c:otherwise>
+                                                -
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td style="padding:8px; text-align:center;">
+                                        <form action="${pageContext.request.contextPath}/VerContenidoExcelServlet" method="get" target="_blank" style="margin:0; display:inline-block;">
+                                            <input type="hidden" name="idArchivoCargado" value="${archivo.idArchivoCargado}" />
+                                            <button type="submit" class="btn-respuesta">Ver respuestas</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </c:when>
+                <c:otherwise>
+                    <p style="padding: 15px; text-align: center; color: #555;">No hay archivos cargados disponibles.</p>
+                </c:otherwise>
+            </c:choose>
+        </div>
+        <%-- La paginación necesitaría lógica adicional en el servlet y en el DAO --%>
+        <div class="pagination">
+            <span>&lt;</span>
+            <span>2</span>
+            <span class="active">3</span>
+            <span>4</span>
+            <span>&gt;</span>
+        </div>
     </div>
 </main>
 </body>

@@ -3,10 +3,8 @@ package com.example.webproyecto.servlets.coordinador;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
-import com.example.webproyecto.daos.ArchivoCargadoDao; // ¡Asegúrate de que esta ruta sea correcta!
-import com.example.webproyecto.beans.ArchivoCargado; // ¡Asegúrate de que esta ruta sea correcta!
-// import com.example.webproyecto.daos.encuestador.FormularioDao; // Comenta o elimina esta línea si ya no la usas aquí
-// import com.example.webproyecto.beans.Formulario; // Comenta o elimina esta línea si ya no la usas aquí
+import com.example.webproyecto.daos.FormularioDao; // Importa tu FormularioDao
+import com.example.webproyecto.beans.Formulario;   // Importa tu bean Formulario
 import java.util.List;
 import java.io.IOException;
 
@@ -25,14 +23,13 @@ public class GestionarFormulariosServlet extends HttpServlet {
         }
 
         try {
-            // Utiliza tu ArchivoCargadoDao
-            ArchivoCargadoDao archivoCargadoDao = new ArchivoCargadoDao();
-            // Llama al método que obtiene todos los archivos (el que ya tienes en tu DAO)
-            List<ArchivoCargado> archivosCargados = archivoCargadoDao.obtenerTodosLosArchivosCargados();
-            request.setAttribute("archivosCargados", archivosCargados); // Pasa la lista al JSP
+            // NUEVO: Obtener todos los formularios
+            FormularioDao formularioDao = new FormularioDao();
+            List<Formulario> listaFormularios = formularioDao.obtenerTodosLosFormularios();
+            request.setAttribute("listaFormularios", listaFormularios); // Pasa la lista al JSP
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("archivosCargados", null);
+            request.setAttribute("listaFormularios", null);
         }
 
         request.setAttribute("nombre", session.getAttribute("nombre"));

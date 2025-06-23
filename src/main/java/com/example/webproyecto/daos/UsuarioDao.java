@@ -9,15 +9,14 @@ import com.example.webproyecto.beans.Credencial;
 import com.example.webproyecto.beans.ArchivoCargado;
 import com.example.webproyecto.beans.Usuario;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Base64;
+import java.util.*;
 
 import java.io.InputStream;
 import java.sql.*; // Importa java.sql.* para PreparedStatement, ResultSet, SQLException, Types
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 
 // No es necesario importar estos explícitamente si ya tienes java.sql.*
 // import java.sql.PreparedStatement;
@@ -82,34 +81,33 @@ public class UsuarioDao {
         return false;
     }
 
-    /**
-     * Obtiene una lista de archivos cargados, opcionalmente filtrados por usuario.
-     * Podría ser útil para el historial de un coordinador específico.
-     *
-     * @param idUsuario Si es mayor que 0, filtra por este ID de usuario. Si es 0, trae todos los archivos.
-     * @return Una lista de objetos ArchivoCargado.
-     */
+
 
 
     public int contarEncuestadoresActivos() {
         String sql = "SELECT COUNT(*) FROM usuario WHERE idRol = 3 AND idEstado = 2";
         try (Connection conn = getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
     public int contarEncuestadoresDesactivos() {
         String sql = "SELECT COUNT(*) FROM usuario WHERE idRol = 3 AND idEstado != 2";
         try (Connection conn = getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
+
     public List<com.example.webproyecto.beans.ArchivoCargado> obtenerArchivosCargados(int idUsuario) {
         List<com.example.webproyecto.beans.ArchivoCargado> listaArchivos = new ArrayList<>();
         String sql = "SELECT ac.*, u.nombre AS nombreUsuario, u.apellidopaterno AS apellidoPaternoUsuario " +
@@ -212,15 +210,18 @@ public class UsuarioDao {
         List<CoordinadorDTO> lista = new ArrayList<>();
 
         String sql = """
-        SELECT u_enc.*, c.correo
-        FROM usuario AS u_coord
-        JOIN distrito AS d_coord ON u_coord.idDistritoTrabajo = d_coord.iddistrito
-        JOIN distrito AS d_enc ON d_enc.idzona = d_coord.idzona
-        JOIN usuario AS u_enc ON u_enc.idDistritoTrabajo = d_enc.iddistrito
+        SELECT u_enc.*, c.correo, d.nombredistrito AS distritoNombre, z.nombreZona
+        FROM usuario u_enc
+        JOIN distrito d ON u_enc.idDistritoTrabajo = d.iddistrito
+        JOIN zona z ON d.idzona = z.idzona
         LEFT JOIN credencial c ON u_enc.idUsuario = c.idUsuario
-        WHERE u_coord.idUsuario = ?
-          AND u_coord.idrol = 2
-          AND u_enc.idrol = 3
+        WHERE u_enc.idrol = 3
+          AND d.idzona = (
+              SELECT dz.idzona
+              FROM usuario uc
+              JOIN distrito dz ON uc.idDistritoTrabajo = dz.iddistrito
+              WHERE uc.idUsuario = ?
+          )
     """;
 
         try (Connection conn = getConnection();
@@ -246,7 +247,16 @@ public class UsuarioDao {
                 Credencial c = new Credencial();
                 c.setCorreo(rs.getString("correo"));
 
-                lista.add(new CoordinadorDTO(u, c));
+                CoordinadorDTO dto = new CoordinadorDTO(u, c);
+                dto.setDistritoNombre(rs.getString("distritoNombre"));
+
+                String zonaNombre = rs.getString("nombreZona");
+                if (zonaNombre != null && zonaNombre.toLowerCase().startsWith("zona ")) {
+                    zonaNombre = zonaNombre.substring(5).trim();
+                }
+                dto.setZonaTrabajoNombre(zonaNombre);
+
+                lista.add(dto);
             }
 
         } catch (SQLException e) {
@@ -256,9 +266,78 @@ public class UsuarioDao {
         return lista;
     }
 
+<<<<<<< HEAD
     public List<EncuestadorDTO> listarEncuestadoresConCorreo() {
         List<EncuestadorDTO> lista = new ArrayList<>();
         String sql = "SELECT u.*, c.correo, z.nombreZona AS zonaTrabajoNombre " +
+=======
+
+    public int contarEncuestadoresPorZona(int idUsuarioCoordinador, boolean activos) {
+        String sql = """
+        SELECT COUNT(*) AS total
+        FROM usuario u_enc
+        JOIN distrito d ON u_enc.idDistritoTrabajo = d.iddistrito
+        WHERE u_enc.idRol = 3
+          AND d.idzona = (
+              SELECT dz.idzona
+              FROM usuario uc
+              JOIN distrito dz ON uc.idDistritoTrabajo = dz.iddistrito
+              WHERE uc.idUsuario = ?
+          )
+          AND u_enc.idEstado """ + (activos ? "= 2" : "!= 2");
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idUsuarioCoordinador);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getInt("total");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    public Map<String, int[]> contarEncuestadoresPorDistritoEnZona(int idUsuarioCoordinador) {
+        Map<String, int[]> mapa = new LinkedHashMap<>();
+
+        String sql = """
+        SELECT d.nombredistrito, 
+               SUM(CASE WHEN u.idEstado = 2 THEN 1 ELSE 0 END) AS activos,
+               SUM(CASE WHEN u.idEstado != 2 THEN 1 ELSE 0 END) AS inactivos
+        FROM usuario u
+        JOIN distrito d ON u.idDistritoTrabajo = d.iddistrito
+        WHERE u.idRol = 3
+          AND d.idzona = (
+              SELECT dz.idzona
+              FROM usuario uc
+              JOIN distrito dz ON uc.idDistritoTrabajo = dz.iddistrito
+              WHERE uc.idUsuario = ?
+          )
+        GROUP BY d.iddistrito, d.nombredistrito
+        ORDER BY d.nombredistrito
+    """;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idUsuarioCoordinador);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String nombreDistrito = rs.getString("nombredistrito");
+                int activos = rs.getInt("activos");
+                int inactivos = rs.getInt("inactivos");
+                mapa.put(nombreDistrito, new int[]{activos, inactivos});
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        System.out.println(mapa);
+        return mapa;
+    }
+
+    public List<CoordinadorDTO> listarEncuestadoresConCorreo() {
+        List<CoordinadorDTO> lista = new ArrayList<>();
+        String sql = "SELECT u.*, c.correo, z.nombreZona AS zonaDistritoNombre " +
+>>>>>>> main
                 "FROM usuario u " +
                 "LEFT JOIN credencial c ON u.idUsuario = c.idUsuario " +
                 "LEFT JOIN zona z ON u.idZonaTrabajo = z.idZona " +
@@ -663,7 +742,9 @@ public class UsuarioDao {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
@@ -673,7 +754,9 @@ public class UsuarioDao {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 

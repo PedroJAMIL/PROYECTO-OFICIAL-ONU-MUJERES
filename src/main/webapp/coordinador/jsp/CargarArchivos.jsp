@@ -372,6 +372,43 @@
             cursor: pointer;
             margin-left: 5px;
         }
+        /* Pop Up */
+        .popup-centrado {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.35);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-contenido {
+            background: #fff;
+            padding: 2rem 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .popup-contenido button {
+            margin-top: 1.5rem;
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .popup-contenido button:first-child {
+            background: #007bff;
+            color: white;
+            margin-right: 1rem;
+        }
+
+        .popup-contenido button:last-child {
+            background: #ccc;
+        }
         /* Paginación */
         .pagination {
             display: flex;
@@ -552,6 +589,16 @@
         </script>
         <c:remove var="mensajeError" scope="session"/>
     </c:if>
+    <c:if test="${not empty sessionScope.mensajeErrorFormato}">
+        <div id="popup-formato" class="popup-centrado" style="display:flex;">
+            <div class="popup-contenido">
+                <h3 style="color:#dc3545;">¡Formato de archivo incorrecto!</h3>
+                <p>${sessionScope.mensajeErrorFormato}</p>
+                <button onclick="cerrarPopups()">Aceptar</button>
+            </div>
+        </div>
+        <c:remove var="mensajeErrorFormato" scope="session"/>
+    </c:if>
 
     <form action="${pageContext.request.contextPath}/CargarArchivosServlet" method="post" enctype="multipart/form-data" id="uploadForm">
         <input type="file" id="fileInput" name="archivo" style="display: none;" onchange="this.form.submit();" />
@@ -580,20 +627,19 @@
         <c:if test="${not empty historialArchivos}">
             <div class="historial-list">
                 <c:forEach var="archivo" items="${historialArchivos}">
+                    <c:set var="progressWidth"
+                        value="${archivo.estadoProcesamiento == 'COMPLETADO' ? '100%' :
+                                archivo.estadoProcesamiento == 'EN_PROCESO' ? '60%' :
+                                archivo.estadoProcesamiento == 'PENDIENTE' ? '30%' : '0%'}" />
                     <div class="historial-item">
                         <span>
                             ${archivo.nombreArchivoOriginal}
                             <small style="display: block; font-size: 0.7em; color: #555; font-weight: normal;">
-                                Cargado: ${archivo.fechaCarga} - Estado: ${archivo.estadoProcesamiento}
+                                Cargado: ${fn:replace(archivo.fechaCarga, 'T', ' ')} - Estado: ${archivo.estadoProcesamiento}
                             </small>
                         </span>
                         <div class="progress-bar">
-                            <div class="progress-bar-inner" style="width: <c:choose>
-                            <c:when test="${archivo.estadoProcesamiento == 'COMPLETADO'}">100%</c:when>
-                            <c:when test="${archivo.estadoProcesamiento == 'EN_PROCESO'}">60%</c:when>
-                            <c:when test="${archivo.estadoProcesamiento == 'PENDIENTE'}">30%</c:when>
-                            <c:otherwise>0%</c:otherwise>
-                                    </c:choose>"></div>
+                            <div class="progress-bar-inner" style="width: ${progressWidth};"></div>
                         </div>
                         <button class="btn-modificar">Modificar</button>
                         <a href="${pageContext.request.contextPath}/DownloadServlet?file=${archivo.rutaGuardado}" class="btn-descargar" title="Descargar"><i class="fa-solid fa-download"></i></a>
@@ -610,6 +656,11 @@
             <span>&gt;</span>
         </div>
     </div>
+    <script>
+        function cerrarPopups() {
+            document.querySelectorAll('[id^="popup-"]').forEach(p => p.style.display = 'none');
+        }
+    </script>
 </main>
 </body>
 </html>

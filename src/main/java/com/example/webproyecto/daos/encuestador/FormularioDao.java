@@ -43,7 +43,7 @@ public class FormularioDao {
         List<Formulario> formularios = new ArrayList<>();
         String sql = "SELECT idFormulario, titulo, activo FROM formulario WHERE idFormulario = ?";
         try (Connection conn = Conexion.obtenerConexion();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idFormulario);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -58,21 +58,21 @@ public class FormularioDao {
         return formularios;
     }
     public List<Formulario> obtenerTodosLosFormularios() throws SQLException {
-    List<Formulario> formularios = new ArrayList<>();
-    String sql = "SELECT idFormulario, titulo, activo FROM formulario";
-    try (Connection conn = Conexion.obtenerConexion();
-         PreparedStatement ps = conn.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
-        while (rs.next()) {
-            Formulario f = new Formulario();
-            f.setIdFormulario(rs.getInt("idFormulario"));
-            f.setTitulo(rs.getString("titulo"));
-            f.setActivo(rs.getBoolean("activo"));
-            formularios.add(f);
+        List<Formulario> formularios = new ArrayList<>();
+        String sql = "SELECT idFormulario, titulo, activo FROM formulario";
+        try (Connection conn = Conexion.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Formulario f = new Formulario();
+                f.setIdFormulario(rs.getInt("idFormulario"));
+                f.setTitulo(rs.getString("titulo"));
+                f.setActivo(rs.getBoolean("activo"));
+                formularios.add(f);
+            }
         }
+        return formularios;
     }
-    return formularios;
-}
 
     public void actualizarFormulario(Formulario formulario) throws SQLException {
         String sql = "UPDATE formulario SET titulo = ?, activo = ? WHERE idFormulario = ?";
@@ -93,10 +93,10 @@ public class FormularioDao {
             ps.executeUpdate();
         }
     }
-        public void insertarFormulario(Formulario formulario) throws SQLException {
+    public void insertarFormulario(Formulario formulario) throws SQLException {
         String sql = "INSERT INTO formulario (titulo, descripcion, fechaCreacion, idCoordinador, idCarpeta, activo) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = Conexion.obtenerConexion();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, formulario.getTitulo());
             ps.setString(2, formulario.getDescripcion());
             ps.setDate(3, new java.sql.Date(formulario.getFechaCreacion().getTime()));
