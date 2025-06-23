@@ -189,6 +189,43 @@ public class CredencialDao {
         }
         return false;
     }
+    public void insertarCredencial(String correo, String contrasenha, int idUsuario) {
+        String sql = "INSERT INTO credencial (correo, contrasenha, idusuario) VALUES (?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, correo);
+            pstmt.setString(2, contrasenha); // Puede ser null
+            pstmt.setInt(3, idUsuario);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public int insertarUsuarioYObtenerId(Usuario usuario) {
+        String sql = "INSERT INTO usuario (nombre, apellidopaterno, apellidomaterno, dni, direccion, idDistrito, idRol, idEstado, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, usuario.getNombre());
+            stmt.setString(2, usuario.getApellidopaterno());
+            stmt.setString(3, usuario.getApellidomaterno());
+            stmt.setString(4, usuario.getDni());
+            stmt.setString(5, usuario.getDireccion());
+            stmt.setInt(6, usuario.getIdDistrito());
+            stmt.setInt(7, usuario.getIdRol());
+            stmt.setInt(8, usuario.getIdEstado());
+            stmt.setString(9, usuario.getFoto());
+            int filas = stmt.executeUpdate();
+            if (filas > 0) {
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 
 }
 

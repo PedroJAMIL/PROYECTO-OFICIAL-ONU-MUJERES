@@ -2,6 +2,8 @@ package com.example.webproyecto.servlets.administrador;
 
 import com.example.webproyecto.dtos.CoordinadorDTO;
 import com.example.webproyecto.daos.UsuarioDao;
+import com.example.webproyecto.daos.encuestador.ZonaDao;
+import com.example.webproyecto.beans.Zona;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -17,8 +19,10 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        System.out.println("[DEBUG] Entrando a doGet de GestionarCoordinadoresServlet");
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("idUsuario") == null) {
+            System.out.println("[DEBUG] Sesión nula o sin idUsuario, redirigiendo a login.jsp");
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
@@ -26,19 +30,25 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
         Object idrolObj = session.getAttribute("idrol");
         int idrol = (idrolObj instanceof Integer) ? (Integer) idrolObj : Integer.parseInt(idrolObj.toString());
         if (idrol != 1) {
+            System.out.println("[DEBUG] idrol != 1, redirigiendo a login.jsp");
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
         UsuarioDao usuarioDao = new UsuarioDao();
+        ZonaDao zonaDao = new ZonaDao();
+        List<Zona> zonas = zonaDao.listarZonas();
+        request.setAttribute("zonas", zonas);
         String nombreFiltro = request.getParameter("nombre");
         String estadoFiltro = request.getParameter("estado");
+        String zonaFiltro = request.getParameter("zona");
         int paginaActual = 1;
         try {
             paginaActual = Integer.parseInt(request.getParameter("pagina"));
         } catch (Exception ignored) {}
 
         List<CoordinadorDTO> coordinadores = usuarioDao.listarCoordinadoresConCorreo();
+        System.out.println("[DEBUG] coordinadores.size()=" + (coordinadores != null ? coordinadores.size() : "null"));
 
         if (nombreFiltro != null && !nombreFiltro.trim().isEmpty()) {
             String filtroLower = nombreFiltro.trim().toLowerCase();
@@ -55,6 +65,13 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {}
         }
 
+        if (zonaFiltro != null && !zonaFiltro.isEmpty()) {
+            try {
+                int zonaInt = Integer.parseInt(zonaFiltro);
+                coordinadores.removeIf(e -> e.getUsuario().getIdZonaTrabajo() == null || e.getUsuario().getIdZonaTrabajo() != zonaInt);
+            } catch (NumberFormatException ignored) {}
+        }
+
         int totalCoordinadores = coordinadores.size();
         int totalPaginas = (int) Math.ceil((double) totalCoordinadores / COORDINADORES_POR_PAGINA);
         if (totalPaginas == 0) totalPaginas = 1;
@@ -66,12 +83,19 @@ public class GestionarCoordinadoresServlet extends HttpServlet {
         if (desde < 0) desde = 0;
         if (desde > hasta) desde = hasta;
 
+        // Guardar la lista completa filtrada en sesión para reportes
+        session.setAttribute("coordinadoresFiltrados", coordinadores);
+
         List<CoordinadorDTO> coordinadoresPagina = (totalCoordinadores == 0) ? java.util.Collections.emptyList() : coordinadores.subList(desde, hasta);
+        System.out.println("[DEBUG] coordinadoresPagina.size()=" + (coordinadoresPagina != null ? coordinadoresPagina.size() : "null"));
         request.setAttribute("coordinadores", coordinadoresPagina);
         request.setAttribute("paginaActual", paginaActual);
         request.setAttribute("totalPaginas", totalPaginas);
+        request.setAttribute("zonaSeleccionada", zonaFiltro);
 
+        System.out.println("[DEBUG] Antes de forward a gestionarCoordinadores.jsp");
         request.getRequestDispatcher("admin/gestionarCoordinadores.jsp").forward(request, response);
+        System.out.println("[DEBUG] Después de forward (esto no debería verse)");
     }
 
     @Override

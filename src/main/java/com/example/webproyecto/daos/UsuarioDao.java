@@ -2,6 +2,9 @@ package com.example.webproyecto.daos;
 
 import com.example.webproyecto.utils.Conexion;
 import com.example.webproyecto.dtos.CoordinadorDTO;
+import com.example.webproyecto.dtos.EncuestadorDTO;
+import com.example.webproyecto.dtos.UsuarioDTO;
+import com.example.webproyecto.dtos.CredencialDTO;
 import com.example.webproyecto.beans.Credencial;
 import com.example.webproyecto.beans.ArchivoCargado;
 import com.example.webproyecto.beans.Usuario;
@@ -263,6 +266,11 @@ public class UsuarioDao {
         return lista;
     }
 
+<<<<<<< HEAD
+    public List<EncuestadorDTO> listarEncuestadoresConCorreo() {
+        List<EncuestadorDTO> lista = new ArrayList<>();
+        String sql = "SELECT u.*, c.correo, z.nombreZona AS zonaTrabajoNombre " +
+=======
 
     public int contarEncuestadoresPorZona(int idUsuarioCoordinador, boolean activos) {
         String sql = """
@@ -329,41 +337,37 @@ public class UsuarioDao {
     public List<CoordinadorDTO> listarEncuestadoresConCorreo() {
         List<CoordinadorDTO> lista = new ArrayList<>();
         String sql = "SELECT u.*, c.correo, z.nombreZona AS zonaDistritoNombre " +
+>>>>>>> main
                 "FROM usuario u " +
                 "LEFT JOIN credencial c ON u.idUsuario = c.idUsuario " +
-                "LEFT JOIN distrito d ON u.idDistrito = d.idDistrito " +
-                "LEFT JOIN zona z ON d.idZona = z.idZona " +
+                "LEFT JOIN zona z ON u.idZonaTrabajo = z.idZona " +
                 "WHERE u.idRol = 3 " +
                 "ORDER BY u.idUsuario DESC";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                Usuario u = new Usuario();
-                u.setIdUsuario(rs.getInt("idUsuario"));
-                u.setNombre(rs.getString("nombre"));
-                u.setApellidopaterno(rs.getString("apellidopaterno"));
-                u.setApellidomaterno(rs.getString("apellidomaterno"));
-                u.setDni(rs.getString("dni"));
-                u.setDireccion(rs.getString("direccion"));
-                u.setIdDistrito(rs.getInt("idDistrito"));
-                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo"));
-                u.setIdRol(rs.getInt("idRol"));
-                u.setIdEstado(rs.getInt("idEstado"));
-                u.setFoto(rs.getString("foto"));
+                UsuarioDTO usuario = new UsuarioDTO();
+                usuario.setIdUsuario(rs.getInt("idUsuario"));
+                usuario.setNombre(rs.getString("nombre"));
+                usuario.setApellidopaterno(rs.getString("apellidopaterno"));
+                usuario.setApellidomaterno(rs.getString("apellidomaterno"));
+                usuario.setDni(rs.getString("dni"));
+                usuario.setIdEstado(rs.getInt("idEstado"));
+                usuario.setIdDistrito(rs.getInt("idDistrito"));
+                usuario.setIdZonaTrabajo(rs.getObject("idZonaTrabajo") != null ? rs.getInt("idZonaTrabajo") : null);
+                usuario.setFechaRegistro(rs.getTimestamp("fecha_registro"));
 
-                Credencial c = new Credencial();
-                c.setCorreo(rs.getString("correo"));
+                CredencialDTO credencial = new CredencialDTO();
+                credencial.setCorreo(rs.getString("correo"));
 
-                CoordinadorDTO dto = new CoordinadorDTO(u, c);
-                String zonaNombre = rs.getString("zonaDistritoNombre");
-                if (zonaNombre != null && zonaNombre.toLowerCase().startsWith("zona ")) {
-                    zonaNombre = zonaNombre.substring(5).trim();
-                }
-                dto.setZonaTrabajoNombre(zonaNombre);
+                EncuestadorDTO dto = new EncuestadorDTO();
+                dto.setUsuario(usuario);
+                dto.setCredencial(credencial);
+                dto.setZonaTrabajoNombre(rs.getString("zonaTrabajoNombre"));
                 lista.add(dto);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return lista;
@@ -654,23 +658,21 @@ public class UsuarioDao {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                Usuario u = new Usuario();
-                u.setIdUsuario(rs.getInt("idUsuario"));
-                u.setNombre(rs.getString("nombre"));
-                u.setApellidopaterno(rs.getString("apellidopaterno"));
-                u.setApellidomaterno(rs.getString("apellidomaterno"));
-                u.setDni(rs.getString("dni"));
-                u.setDireccion(rs.getString("direccion"));
-                u.setIdDistrito(rs.getInt("idDistrito"));
-                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo"));
-                u.setIdRol(rs.getInt("idRol"));
-                u.setIdEstado(rs.getInt("idEstado"));
-                u.setFoto(rs.getString("foto"));
+                Usuario usuario = new Usuario();
+                usuario.setIdUsuario(rs.getInt("idUsuario"));
+                usuario.setNombre(rs.getString("nombre"));
+                usuario.setApellidopaterno(rs.getString("apellidopaterno"));
+                usuario.setApellidomaterno(rs.getString("apellidomaterno"));
+                usuario.setDni(rs.getString("dni"));
+                usuario.setIdEstado(rs.getInt("idEstado"));
+                usuario.setIdDistrito(rs.getInt("idDistrito"));
+                usuario.setIdZonaTrabajo(rs.getObject("idZonaTrabajo") != null ? rs.getInt("idZonaTrabajo") : null);
+                usuario.setFechaRegistro(rs.getTimestamp("fecha_registro"));
 
                 Credencial c = new Credencial();
                 c.setCorreo(rs.getString("correo"));
 
-                CoordinadorDTO dto = new CoordinadorDTO(u, c);
+                CoordinadorDTO dto = new CoordinadorDTO(usuario, c);
                 String zonaNombre = rs.getString("zonaTrabajoNombre");
                 if (zonaNombre != null && zonaNombre.toLowerCase().startsWith("zona ")) {
                     zonaNombre = zonaNombre.substring(5).trim();
@@ -756,5 +758,152 @@ public class UsuarioDao {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public List<CoordinadorDTO> obtenerCoordinadores() {
+        return listarCoordinadoresConCorreo();
+    }
+
+    public List<EncuestadorDTO> obtenerEncuestadores() {
+        return listarEncuestadoresConCorreo();
+    }
+
+    public List<CoordinadorDTO> obtenerCoordinadoresFiltrado(String nombre, String apellidopaterno, String dni, String zonaTrabajo, String rangoFechas) {
+        List<CoordinadorDTO> lista = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT u.*, c.correo, z.nombreZona AS zonaTrabajoNombre FROM usuario u " +
+                "LEFT JOIN credencial c ON u.idUsuario = c.idUsuario " +
+                "LEFT JOIN zona z ON u.idZonaTrabajo = z.idZona WHERE u.idRol = 2");
+        List<Object> params = new ArrayList<>();
+        if (nombre != null && !nombre.isEmpty()) {
+            sql.append(" AND u.nombre LIKE ?");
+            params.add("%" + nombre + "%");
+        }
+        if (apellidopaterno != null && !apellidopaterno.isEmpty()) {
+            sql.append(" AND u.apellidopaterno LIKE ?");
+            params.add("%" + apellidopaterno + "%");
+        }
+        if (dni != null && !dni.isEmpty()) {
+            sql.append(" AND u.dni LIKE ?");
+            params.add("%" + dni + "%");
+        }
+        if (zonaTrabajo != null && !zonaTrabajo.isEmpty()) {
+            sql.append(" AND u.idZonaTrabajo = ?");
+            params.add(Integer.parseInt(zonaTrabajo));
+        }
+        if (rangoFechas != null && !rangoFechas.isEmpty()) {
+            sql.append(" AND u.fecha_registro >= ?");
+            java.util.Date now = new java.util.Date();
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.setTime(now);
+            switch (rangoFechas) {
+                case "semana": cal.add(java.util.Calendar.DAY_OF_YEAR, -7); break;
+                case "mes": cal.add(java.util.Calendar.MONTH, -1); break;
+                case "tresmeses": cal.add(java.util.Calendar.MONTH, -3); break;
+            }
+            params.add(new java.sql.Timestamp(cal.getTimeInMillis()));
+        }
+        sql.append(" ORDER BY u.idUsuario DESC");
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Usuario u = new Usuario();
+                u.setIdUsuario(rs.getInt("idUsuario"));
+                u.setNombre(rs.getString("nombre"));
+                u.setApellidopaterno(rs.getString("apellidopaterno"));
+                u.setApellidomaterno(rs.getString("apellidomaterno"));
+                u.setDni(rs.getString("dni"));
+                u.setDireccion(rs.getString("direccion"));
+                u.setIdDistrito(rs.getInt("idDistrito"));
+                u.setIdDistritoTrabajo((Integer) rs.getObject("idDistritoTrabajo"));
+                u.setIdRol(rs.getInt("idRol"));
+                u.setIdEstado(rs.getInt("idEstado"));
+                u.setFoto(rs.getString("foto"));
+                u.setFechaRegistro(rs.getTimestamp("fecha_registro"));
+                Credencial c = new Credencial();
+                c.setCorreo(rs.getString("correo"));
+                CoordinadorDTO dto = new CoordinadorDTO(u, c);
+                String zonaNombre = rs.getString("zonaTrabajoNombre");
+                if (zonaNombre != null && zonaNombre.toLowerCase().startsWith("zona ")) {
+                    zonaNombre = zonaNombre.substring(5).trim();
+                }
+                dto.setZonaTrabajoNombre(zonaNombre);
+                lista.add(dto);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    public List<EncuestadorDTO> obtenerEncuestadoresFiltrado(String nombre, String apellidopaterno, String dni, String zonaTrabajo, String rangoFechas) {
+        List<EncuestadorDTO> lista = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT u.*, c.correo, z.nombreZona AS zonaTrabajoNombre FROM usuario u " +
+                "LEFT JOIN credencial c ON u.idUsuario = c.idUsuario " +
+                "LEFT JOIN zona z ON u.idZonaTrabajo = z.idZona WHERE u.idRol = 3");
+        List<Object> params = new ArrayList<>();
+        if (nombre != null && !nombre.isEmpty()) {
+            sql.append(" AND u.nombre LIKE ?");
+            params.add("%" + nombre + "%");
+        }
+        if (apellidopaterno != null && !apellidopaterno.isEmpty()) {
+            sql.append(" AND u.apellidopaterno LIKE ?");
+            params.add("%" + apellidopaterno + "%");
+        }
+        if (dni != null && !dni.isEmpty()) {
+            sql.append(" AND u.dni LIKE ?");
+            params.add("%" + dni + "%");
+        }
+        if (zonaTrabajo != null && !zonaTrabajo.isEmpty()) {
+            sql.append(" AND u.idZonaTrabajo = ?");
+            params.add(Integer.parseInt(zonaTrabajo));
+        }
+        if (rangoFechas != null && !rangoFechas.isEmpty()) {
+            sql.append(" AND u.fecha_registro >= ?");
+            java.util.Date now = new java.util.Date();
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.setTime(now);
+            switch (rangoFechas) {
+                case "semana": cal.add(java.util.Calendar.DAY_OF_YEAR, -7); break;
+                case "mes": cal.add(java.util.Calendar.MONTH, -1); break;
+                case "tresmeses": cal.add(java.util.Calendar.MONTH, -3); break;
+            }
+            params.add(new java.sql.Timestamp(cal.getTimeInMillis()));
+        }
+        sql.append(" ORDER BY u.idUsuario DESC");
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                UsuarioDTO usuario = new UsuarioDTO();
+                usuario.setIdUsuario(rs.getInt("idUsuario"));
+                usuario.setNombre(rs.getString("nombre"));
+                usuario.setApellidopaterno(rs.getString("apellidopaterno"));
+                usuario.setApellidomaterno(rs.getString("apellidomaterno"));
+                usuario.setDni(rs.getString("dni"));
+                usuario.setIdEstado(rs.getInt("idEstado"));
+                usuario.setIdDistrito(rs.getInt("idDistrito"));
+                usuario.setIdZonaTrabajo(rs.getObject("idZonaTrabajo") != null ? rs.getInt("idZonaTrabajo") : null);
+                usuario.setFechaRegistro(rs.getTimestamp("fecha_registro"));
+
+                CredencialDTO credencial = new CredencialDTO();
+                credencial.setCorreo(rs.getString("correo"));
+
+                EncuestadorDTO dto = new EncuestadorDTO();
+                dto.setUsuario(usuario);
+                dto.setCredencial(credencial);
+                dto.setZonaTrabajoNombre(rs.getString("zonaTrabajoNombre"));
+                lista.add(dto);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return lista;
     }
 }

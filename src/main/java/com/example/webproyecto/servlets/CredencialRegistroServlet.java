@@ -1,13 +1,12 @@
 package com.example.webproyecto.servlets;
 
-import com.example.webproyecto.beans.Distrito;
 import com.example.webproyecto.beans.Usuario;
-import com.example.webproyecto.beans.Credencial;
 import com.example.webproyecto.daos.CredencialDao;
 import com.example.webproyecto.daos.DistritoDao;
 import com.example.webproyecto.daos.UsuarioDao;
+import com.example.webproyecto.daos.CodigoDao;
+import com.example.webproyecto.utils.MailSender;
 import java.io.IOException;
-import java.util.List;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -32,17 +31,7 @@ public class CredencialRegistroServlet extends HttpServlet {
         String direccion = request.getParameter("direccion");
         int idDistrito = Integer.parseInt(request.getParameter("distrito"));
         String correo = request.getParameter("correo");
-        String contrasenha = request.getParameter("contrasenha");
-        String confirmarContrasenha = request.getParameter("confirmarContrasenha");
 
-        // Validar contraseñas
-        if (!contrasenha.equals(confirmarContrasenha)) {
-            request.setAttribute("error", "Las contraseñas no coinciden");
-            doGet(request, response);
-            return;
-        }
-
-        // Crear objetos
         Usuario usuario = new Usuario();
         usuario.setNombre(nombre);
         usuario.setApellidopaterno(apellidoPaterno);
@@ -50,53 +39,55 @@ public class CredencialRegistroServlet extends HttpServlet {
         usuario.setDni(dni);
         usuario.setDireccion(direccion);
         usuario.setIdDistrito(idDistrito);
-        usuario.setIdRol(3); // Rol por defecto (2 = usuario normal)
-        usuario.setIdEstado(2); // Estado activo
+        usuario.setIdRol(3); // Rol por defecto
+        usuario.setIdEstado(2); // Estado pendiente de verificación
 
-        Credencial credencial = new Credencial();
-        credencial.setCorreo(correo);
-        credencial.setContrasenha(contrasenha);
-
-        // Registrar en BD
-        UsuarioDao usuarioDao = new UsuarioDao();
         CredencialDao credencialDao = new CredencialDao();
 
         try {
             // Verificar si el correo ya existe
             if (credencialDao.existeCorreo(correo)) {
                 request.setAttribute("error", "El correo ya está registrado");
-                doGet(request, response);
+                request.getRequestDispatcher("registro.jsp").forward(request, response);
                 return;
             }
 
-            // Verificar si el DNI ya existe
-            if (usuarioDao.existeDni(dni)) {
-                request.setAttribute("error", "El DNI ya está registrado");
-                doGet(request, response);
+            // Verificar si el DNI ya existe (implementa este método en UsuarioDao si no lo tienes)
+            // if (usuarioDao.existeDni(dni)) {
+            //     request.setAttribute("error", "El DNI ya está registrado");
+            //     request.getRequestDispatcher("registro.jsp").forward(request, response);
+            //     return;
+            // }
+
+            // Insertar usuario y obtener su id
+            int idUsuario = credencialDao.insertarUsuarioYObtenerId(usuario);
+            if (idUsuario == -1) {
+                request.setAttribute("error", "Error al registrar usuario.");
+                request.getRequestDispatcher("registro.jsp").forward(request, response);
                 return;
             }
 
-            // Insertar usuario
-            if (usuarioDao.insertarUsuario(usuario)) {
-                // Obtener ID del usuario insertado
-                Usuario usuarioRegistrado = usuarioDao.obtenerUsuarioPorDni(dni);
-                credencial.setIdUsuario(usuarioRegistrado.getIdUsuario());
+            // Insertar credencial con contraseña null
+            credencialDao.insertarCredencial(correo, null, idUsuario);
 
-                // Insertar credencial
-                if (credencialDao.insertarCredencial(credencial)) {
-                    // Redirigir a login con mensaje de éxito
-                    response.sendRedirect("login.jsp?registro=exito");
-                    return;
-                }
-            }
+            // Generar y guardar código de verificación
+            CodigoDao codigoDao = new CodigoDao();
+            String codigo = codigoDao.generateCodigo(correo);
 
-            request.setAttribute("error", "Error en el registro. Intente nuevamente.");
-            doGet(request, response);
+            // Enviar correo de verificación
+            String subject = "Verifica tu cuenta";
+            String body = "Tu código de verificación es: " + codigo +
+                    "\nO haz clic en el siguiente enlace para establecer tu contraseña:\n" +
+                    "http://localhost:8080/PROYECTO-OFICIAL-ONU-MUJERES/EstablecerContrasenaServlet?codigo=" + codigo;
+            MailSender.sendEmail(correo, subject, body);
+
+            // Redirigir a página de aviso
+            response.sendRedirect("verificaTuCorreo.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Error en el servidor: " + e.getMessage()); // Mostrar detalle
-            doGet(request, response);
+            request.setAttribute("error", "Error en el servidor: " + e.getMessage());
+            request.getRequestDispatcher("registro.jsp").forward(request, response);
         }
     }
 }

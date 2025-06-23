@@ -13,13 +13,14 @@
     }
 
     /* ---- Estilos para el contenido principal (ajustados por el sidebar) ---- */
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f7fa;
+    html, body {
+        height: 100%;
+        min-height: 100vh;
+        background: #fff !important;
         margin: 0;
         padding: 0;
         color: #333;
-        transition: margin-left 0.3s;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .menu-toggle {
         display: none !important;
@@ -37,26 +38,34 @@
 
     /* Contenedor principal (empujado por el sidebar) */
     .contenedor-principal, .main-content {
-        width: 100%;
+        width: 100vw;
+        min-height: 100vh;
         margin: 0;
-        padding: 30px 0 0 0;
+        padding: 0;
+        background: #fff !important;
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
     }
 
     /* ---- Estilos específicos para la tabla (como antes) ---- */
     .contenedor {
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        padding: 25px;
-        max-width: 98vw;
-        width: 98vw;
-        margin: 20px auto;
+        background: #fff;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        width: 100vw;
+        max-width: 100vw;
+        margin: 0;
+        padding: 32px 5vw 24px 5vw;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
         box-sizing: border-box;
-        /* Centrado perfecto y margen igual a ambos lados */
-        position: relative;
-        left: 50%;
-        transform: translateX(-50%);
     }
 
     .tabla-container {
@@ -307,6 +316,66 @@
         z-index: 1001;
         padding: 8px 0;
     }
+    .btn-filtrar,
+    .btn-excel {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        min-width: 120px;
+    }
+    .input-busqueda, .select-zona {
+        height: 40px;
+        min-width: 140px;
+        padding: 8px 20px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        box-sizing: border-box;
+        margin-right: 0;
+        background: #fff;
+        color: #333;
+        outline: none;
+        transition: border 0.2s;
+        display: flex;
+        align-items: center;
+    }
+    .input-busqueda:focus, .select-zona:focus {
+        border: 1.5px solid #2196f3;
+    }
+    .btn-filtrar, .btn-excel {
+        height: 40px;
+        min-width: 140px;
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        box-sizing: border-box;
+    }
+    .btn-filtrar {
+        background: #2196f3;
+        color: #fff;
+    }
+    .btn-excel {
+        background: #219653;
+        color: #fff;
+    }
+    .btn-filtrar:hover {
+        background: #1769aa;
+    }
+    .btn-excel:hover {
+        background: #17693a;
+    }
     .nav-item.dropdown:focus-within .dropdown-menu,
     .nav-item.dropdown:hover .dropdown-menu {
         display: block;
@@ -505,7 +574,6 @@
             <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
-            <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
             <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
         </ul>
     </div>
@@ -541,15 +609,26 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2 style="margin-bottom: 0.5em;">Gestión de Coordinadores</h2>
         </div>
-        <div class="filtros-superior">
-            <form method="get" action="GestionarCoordinadoresServlet" style="display: flex; align-items: center; gap: 10px;">
-                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
-                <select name="estado" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
+        <div style="display: flex; justify-content: flex-start; margin-bottom: 24px;">
+            <form method="get" action="GestionarCoordinadoresServlet" style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" class="input-busqueda" />
+                <select name="estado" class="select-zona">
                     <option value="">Todos</option>
                     <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
                     <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
                 </select>
-                <button type="submit" class="btn-filtrar"><i class="fas fa-search"></i> Filtrar</button>
+                <select name="zona" class="select-zona">
+                    <option value="">Todas las zonas</option>
+                    <c:forEach var="zona" items="${zonas}">
+                        <option value="${zona.idZona}" ${zonaSeleccionada == zona.idZona ? 'selected' : ''}>${zona.nombreZona}</option>
+                    </c:forEach>
+                </select>
+                <button type="submit" class="btn-filtrar">
+                    <i class="fa fa-search"></i> Filtrar
+                </button>
+                <button type="submit" formaction="GenerarReportesCoordiServlet" class="btn-excel">
+                    <i class="fa fa-file-excel-o" style="margin-right: 6px;"></i> Excel
+                </button>
             </form>
         </div>
         <div class="tabla-container">
@@ -565,31 +644,31 @@
                 </thead>
                 <tbody>
                 <c:choose>
-                  <c:when test="${empty coordinadores}">
-                    <tr>
-                      <td colspan="5" style="text-align:center; color:#e74c3c; font-weight:bold; font-size:1.1em; padding:32px 0;">No se encontraron resultados.</td>
-                    </tr>
-                  </c:when>
-                  <c:otherwise>
-                    <c:forEach var="coordinador" items="${coordinadores}">
-                        <c:set var="esActivo" value="${coordinador.usuario.idEstado == 2}" />
-                        <c:set var="textoBtn" value="${esActivo ? 'Activado' : 'Desactivado'}" />
-                        <tr data-id="${coordinador.usuario.idUsuario}">
-                            <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
-                            <td>${coordinador.usuario.dni}</td>
-                            <td>${coordinador.credencial.correo}</td>
-                            <td>${coordinador.usuario.idDistrito}</td>
-                            <td class="estado-col">
-                                <button class="btn-cambiar-estado ${esActivo ? 'btn-estado-activo' : 'btn-estado-inactivo'}" 
-                                        data-id="${coordinador.usuario.idUsuario}"
-                                        data-estado="${coordinador.usuario.idEstado != null ? coordinador.usuario.idEstado : 2}">
-                                    <i class="fas fa-power-off"></i>
-                                    ${textoBtn}
-                                </button>
-                            </td>
+                    <c:when test="${empty coordinadores}">
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#e74c3c; font-weight:bold; font-size:1.1em; padding:32px 0;">No se encontraron resultados.</td>
                         </tr>
-                    </c:forEach>
-                  </c:otherwise>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach var="coordinador" items="${coordinadores}">
+                            <c:set var="esActivo" value="${coordinador.usuario.idEstado == 2}" />
+                            <c:set var="textoBtn" value="${esActivo ? 'Activado' : 'Desactivado'}" />
+                            <tr data-id="${coordinador.usuario.idUsuario}">
+                                <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
+                                <td>${coordinador.usuario.dni}</td>
+                                <td>${coordinador.credencial.correo}</td>
+                                <td>${coordinador.zonaTrabajoNombre}</td>
+                                <td class="estado-col">
+                                    <button class="btn-cambiar-estado ${esActivo ? 'btn-estado-activo' : 'btn-estado-inactivo'}"
+                                            data-id="${coordinador.usuario.idUsuario}"
+                                            data-estado="${coordinador.usuario.idEstado != null ? coordinador.usuario.idEstado : 2}">
+                                        <i class="fas fa-power-off"></i>
+                                            ${textoBtn}
+                                    </button>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                    </c:otherwise>
                 </c:choose>
                 </tbody>
             </table>
@@ -647,43 +726,43 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'accion=cambiarEstado&idUsuario=' + encodeURIComponent(idUsuarioLocal) + '&nuevoEstado=' + encodeURIComponent(nuevoEstadoLocal)
             })
-            .then((res) => {
-                if (!res.ok) throw new Error('HTTP error ' + res.status);
-                return res.json().catch(async () => {
-                    const text = await res.text();
-                    mostrarToast('Respuesta inesperada: ' + text.substring(0, 100), false);
-                    throw new Error('Respuesta no JSON: ' + text);
-                });
-            })
-            .then((data) => {
-                console.log("Respuesta AJAX:", data);
-                if (data.success) {
-                    // Log para depuración
-                    console.log('idUsuarioLocal:', idUsuarioLocal);
-                    const allBtns = document.querySelectorAll('.btn-cambiar-estado');
-                    allBtns.forEach(b => console.log('btn data-id:', b.getAttribute('data-id')));
-                    // Buscar el botón por data-id (comparando como string)
-                    const btn = Array.from(allBtns).find(b => b.getAttribute('data-id') == idUsuarioLocal);
-                    if (!btn) {
-                        mostrarToast('Error: botón no encontrado en DOM (id=' + idUsuarioLocal + ')', false);
-                        return;
+                .then((res) => {
+                    if (!res.ok) throw new Error('HTTP error ' + res.status);
+                    return res.json().catch(async () => {
+                        const text = await res.text();
+                        mostrarToast('Respuesta inesperada: ' + text.substring(0, 100), false);
+                        throw new Error('Respuesta no JSON: ' + text);
+                    });
+                })
+                .then((data) => {
+                    console.log("Respuesta AJAX:", data);
+                    if (data.success) {
+                        // Log para depuración
+                        console.log('idUsuarioLocal:', idUsuarioLocal);
+                        const allBtns = document.querySelectorAll('.btn-cambiar-estado');
+                        allBtns.forEach(b => console.log('btn data-id:', b.getAttribute('data-id')));
+                        // Buscar el botón por data-id (comparando como string)
+                        const btn = Array.from(allBtns).find(b => b.getAttribute('data-id') == idUsuarioLocal);
+                        if (!btn) {
+                            mostrarToast('Error: botón no encontrado en DOM (id=' + idUsuarioLocal + ')', false);
+                            return;
+                        }
+                        btn.setAttribute('data-estado', nuevoEstadoLocal);
+                        btn.innerHTML = '<i class="fas fa-power-off"></i> ' + (nuevoEstadoLocal === '2' ? 'Activado' : 'Desactivado');
+                        btn.classList.toggle('btn-estado-activo', nuevoEstadoLocal === '2');
+                        btn.classList.toggle('btn-estado-inactivo', nuevoEstadoLocal !== '2');
+                        // Actualizar log visual si existe
+                        let logEstado = btn.parentElement.querySelector('span');
+                        if (logEstado) logEstado.innerText = '[idEstado: ' + nuevoEstadoLocal + ']';
+                        mostrarToast('¡Estado actualizado con éxito!', true);
+                    } else {
+                        mostrarToast('Error al cambiar estado', false);
                     }
-                    btn.setAttribute('data-estado', nuevoEstadoLocal);
-                    btn.innerHTML = '<i class="fas fa-power-off"></i> ' + (nuevoEstadoLocal === '2' ? 'Activado' : 'Desactivado');
-                    btn.classList.toggle('btn-estado-activo', nuevoEstadoLocal === '2');
-                    btn.classList.toggle('btn-estado-inactivo', nuevoEstadoLocal !== '2');
-                    // Actualizar log visual si existe
-                    let logEstado = btn.parentElement.querySelector('span');
-                    if (logEstado) logEstado.innerText = '[idEstado: ' + nuevoEstadoLocal + ']';
-                    mostrarToast('¡Estado actualizado con éxito!', true);
-                } else {
-                    mostrarToast('Error al cambiar estado', false);
-                }
-            })
-            .catch((err) => {
-                console.error("Error en fetch:", err);
-                mostrarToast('Error de red al cambiar estado', false);
-            });
+                })
+                .catch((err) => {
+                    console.error("Error en fetch:", err);
+                    mostrarToast('Error de red al cambiar estado', false);
+                });
             document.getElementById('modal-confirm').style.display = 'none';
             idPendiente = null; nuevoEstadoPendiente = null; btnPendiente = null; filaPendiente = null;
         };

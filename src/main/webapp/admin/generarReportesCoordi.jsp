@@ -1,8 +1,16 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: cs
+  Date: 14/06/2025
+  Time: 16:02
+  To change this template use File | Settings | File Templates.
+--%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <html>
 <head>
-    <title>Crear Coordinador Interno</title>
+    <title>Generar Reporte de Coordinadores</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
@@ -17,29 +25,28 @@
         }
         html, body {
             height: 100%;
+        }
+        body {
             min-height: 100vh;
-            background: #fff !important;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e6f0ff 0%, #b3ccff 100%);
             margin: 0;
             padding: 0;
             color: #333;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .menu-toggle:checked ~ .sidebar { left: 0; }
         .menu-toggle:checked ~ .overlay { display: block; opacity: 1; }
-        /* Fix: NO empujar el contenido al abrir sidebar */
-        /* .menu-toggle:checked ~ .contenedor-principal { margin-left: 280px; } */
         .contenedor-principal {
-            width: 100vw;
-            min-height: 100vh;
+            width: 100%;
             margin: 0;
-            padding: 0;
-            background: #fff;
+            padding: 10px 10px 0 32px; /* Aumenta el padding izquierdo */
             box-sizing: border-box;
+            min-height: calc(100vh - 56.8px);
             display: flex;
-            align-items: center; /* Centra verticalmente */
-            justify-content: center;
+            flex-direction: column;
+            justify-content: flex-start;
         }
-        /* Sidebar y header igual que dashboardAdmin.jsp */
         .sidebar {
             position: fixed;
             top: 0;
@@ -88,8 +95,6 @@
             transition: all 0.3s ease;
             font-size: 16px;
             font-weight: bold;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            letter-spacing: 0.01em;
         }
         .sidebar-content .menu-links a i {
             margin-right: 10px;
@@ -119,20 +124,15 @@
         }
         .header-bar {
             background-color: var(--header-bg);
-            height: 56.8px;
+            height: 56.8px; /* Igual que los demás headers */
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
+            position: relative;
+            z-index: 800;
+            width: 100%;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: bold;
-            letter-spacing: 0.01em;
-            z-index: 9999;
         }
         .header-content {
             width: 100%;
@@ -183,7 +183,6 @@
             font-size: 0.9rem;
             user-select: none;
             position: relative;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .nav-icon {
             width: 28px;
@@ -231,178 +230,205 @@
             background: #e6f0ff;
             color: #007bff;
         }
-        /* ----------- Formulario Mejorado: más grande, sin scroll ----------- */
-        .crear-coordinador-wrapper {
-            background: #fff;
-            border-radius: 0;
-            box-shadow: none;
-            border: none;
-            width: 100vw;
-            max-width: 100vw;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center; /* Centra verticalmente */
-            justify-content: center;
-        }
-        .crear-coordinador-form {
-            background: #fff;
-            box-shadow: none;
-            border-radius: 0;
-            border: none;
-            width: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 36px 48px 36px 48px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 26px 36px;
-            align-items: start;
-            min-height: unset;
-            margin-top: 38px;
-        }
-        .form-section {
-            display: contents;
-        }
-        .section-title {
-            grid-column: 1 / -1;
-            margin-bottom: 12px;
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #222;
-            letter-spacing: 0.5px;
-            text-align: left;
+        .reportes-form-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: flex-start;
+            gap: 18px;
+            margin-top: 32px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
         }
-        .section-title i {
-            color: #888;
+        form[style] {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            min-height: 0;
+        }
+        .select-fechas {
+            background: #c8dbff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 22px 14px 18px;
             font-size: 1.1em;
-            margin-right: 4px;
-        }
-        .form-group {
-            margin-bottom: 12px;
-            width: 100%;
+            color: #222;
+            min-width: 260px;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.08);
+            appearance: none;
             position: relative;
         }
-        .form-btns {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 18px;
-            margin-top: 32px;
-            justify-content: center;
-        }
-        .form-group i {
+        .select-fechas:after {
+            content: '';
             position: absolute;
-            left: 10px;
+            right: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: #bbb;
-            font-size: 1em;
-            pointer-events: none;
+            border: 6px solid transparent;
+            border-top: 7px solid #333;
         }
-        .form-input {
-            width: 100%;
-            padding: 16px 16px 16px 44px;
-            border: 2.2px solid #b3ccff;
-            border-radius: 8px;
-            font-size: 1.11em;
-            background: #fff;
-            color: #333;
-            font-weight: normal;
-            transition: border 0.2s;
-            box-sizing: border-box;
-        }
-        .form-input:focus {
-            border: 2.5px solid #3498db;
-            outline: none;
-        }
-        .form-input::placeholder {
-            color: #aaa;
-            opacity: 1;
-            font-weight: normal;
-        }
-        .form-btns {
-            display: flex;
-            gap: 18px;
-            margin-top: 32px;
-            justify-content: center;
-        }
-        .btn {
-            background: #3498db;
+        .btn-reporte {
+            background: linear-gradient(90deg, #5a9cf8 60%, #357ae8 100%);
             color: #fff;
             border: none;
-            border-radius: 6px;
-            padding: 12px 32px;
+            border-radius: 8px;
+            padding: 8px 18px;
             font-size: 1em;
             font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.13);
+            transition: background 0.2s, box-shadow 0.2s;
+            cursor: pointer;
         }
-        .btn:hover {
-            background: #2166c1;
-        }
-        .btn i {
+        .btn-reporte:hover {
+            background: #357ae8;
             color: #fff;
-            font-size: 1em;
-            margin-right: 2px;
+            box-shadow: 0 4px 16px rgba(52, 152, 219, 0.18);
         }
-        .crear-coordinador-title, .section-separator {
-            display: none;
+        .btn-descargar {
+            background: var(--color-btn);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 38px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            float: right;
+            margin-top: 10px;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.10);
         }
-        @media (max-width: 1200px) {
-            .crear-coordinador-form {
-                max-width: 98vw;
-                padding: 24px 2vw 24px 2vw;
-                gap: 18px 18px;
-            }
+        .btn-descargar:hover {
+            background: var(--color-btn-hover);
+        }
+        .btn-descargar.btn-descargar-mini {
+            padding: 7px 14px;
+            font-size: 18px;
+            border-radius: 50%;
+            min-width: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #43e97b 60%, #38f9d7 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(67, 233, 123, 0.13);
+            transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+            cursor: pointer;
+        }
+        .btn-descargar.btn-descargar-mini:hover {
+            background: linear-gradient(135deg, #38f9d7 60%, #43e97b 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(67, 233, 123, 0.18);
+            transform: scale(1.08) rotate(-8deg);
+        }
+        .contenedor {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            padding: 18px 18px 10px 18px;
+            max-width: 98vw;
+            width: 100%;
+            margin: 0 auto 18px auto;
+            box-sizing: border-box;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .tabla-container {
+            overflow-x: auto;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #f8faff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background-color: #eaf1fb;
+            color: #2c3e50;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.93em;
+            letter-spacing: 0.5px;
+        }
+        .estado-activo {
+            background-color: rgba(46, 204, 113, 0.13);
+            color: #2ecc71;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-weight: 600;
+        }
+        .estado-inactivo {
+            background-color: rgba(231, 76, 60, 0.13);
+            color: #e74c3c;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-weight: 600;
         }
         @media (max-width: 900px) {
-            .crear-coordinador-form {
-                margin-top: 18px;
-                grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 0 4vw 32px 4vw;
-            }
-            .form-group {
-                margin-bottom: 8px;
-            }
+            .contenedor-principal { padding: 8px 1vw 0 1vw; }
+            .contenedor { padding: 10px 2vw 6px 2vw; }
+        }
+        @media (max-width: 600px) {
+            .reportes-form-row { flex-direction: column; gap: 10px; align-items: stretch; }
+            .btn-reporte, .btn-descargar { width: 100%; }
+            .filtro-centrado-vertical { height: auto; min-height: 80px; }
+        }
+        .btn-filtro {
+            background: linear-gradient(90deg, #e6f0ff 60%, #b3ccff 100%);
+            color: #357ae8;
+            border: 1.5px solid #b3ccff;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 1em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.08);
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .btn-filtro:hover {
+            background: #dbeeff;
+            color: #003366;
+            box-shadow: 0 4px 16px rgba(52, 152, 219, 0.13);
+        }
+        .dropdown-select {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            z-index: 3000;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(52, 152, 219, 0.13);
+            padding: 10px 12px 10px 12px;
+            animation: fadeIn 0.18s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
-<c:if test="${param.error == 'existe'}">
-  <script>
-    alert('Ya existe un usuario con el mismo DNI o correo. No se puede repetir la información.');
-  </script>
-</c:if>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var forms = document.querySelectorAll('form');
-    forms.forEach(function(form) {
-      var dniInput = form.querySelector('input[name="dni"]');
-      if (dniInput) {
-        form.addEventListener('submit', function(e) {
-          var dniValue = dniInput.value.trim();
-          if (!/^\d{8}$/.test(dniValue)) {
-            alert('El DNI debe contener exactamente 8 números.');
-            dniInput.focus();
-            e.preventDefault();
-          }
-        });
-      }
-    });
-  });
-</script>
-<!-- Checkbox oculto para controlar el sidebar -->
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
-
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-content">
@@ -416,10 +442,8 @@
         </ul>
     </div>
 </div>
-
 <!-- Overlay para cerrar el sidebar al hacer clic fuera -->
 <label for="menu-toggle" class="overlay"></label>
-
 <!-- Header -->
 <header class="header-bar">
     <div class="header-content">
@@ -455,73 +479,53 @@
         </nav>
     </div>
 </header>
-
-<!-- Contenido principal -->
 <main class="contenedor-principal">
-    <div class="crear-coordinador-wrapper">
-        <form class="crear-coordinador-form" action="${pageContext.request.contextPath}/CrearCoordinadorServlet" method="post">
-            <div class="section-title"><i class="fa-solid fa-user"></i>Datos Personales</div>
-            <div class="form-group">
-                <i class="fa-solid fa-user"></i>
-                <input type="text" name="nombre" class="form-input" placeholder="Nombre" required>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-user"></i>
-                <input type="text" name="apellidopaterno" class="form-input" placeholder="Apellido Paterno" required>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-user"></i>
-                <input type="text" name="apellidomaterno" class="form-input" placeholder="Apellido Materno" required>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-id-card"></i>
-                <input type="text" name="dni" class="form-input" placeholder="DNI" required>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-location-dot"></i>
-                <input type="text" name="direccion" class="form-input" placeholder="Dirección" required>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-city"></i>
-                <select id="idDistritoResidencia" name="idDistrito" class="form-input" required>
-                    <option value="">Distrito de Residencia</option>
-                    <c:forEach var="distrito" items="${distritos}">
-                        <option value="${distrito.idDistrito}">${distrito.nombreDistrito}</option>
-                    </c:forEach>
-                </select>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" name="correo" class="form-input" placeholder="Correo" required>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" name="contrasenha" class="form-input" placeholder="Contraseña" required>
-            </div>
-            <div class="section-title"><i class="fa-solid fa-briefcase"></i>Datos de Trabajo</div>
-            <div class="form-group">
-                <i class="fa-solid fa-map-marker-alt"></i>
-                <select id="idZonaTrabajo" name="idZonaTrabajo" class="form-input" required>
-                    <option value="">Seleccion zona de trabajo:</option>
-                    <c:forEach var="zona" items="${zonas}">
-                        <option value="${zona.idZona}">${zona.nombreZona}</option>
-                    </c:forEach>
-                </select>
-            </div>
-            <div class="form-group">
-                <i class="fa-solid fa-file-alt"></i>
-                <select id="idFormularioAsignado" name="idFormularioAsignado" class="form-input" required>
-                    <option value="">Selecciones formulario a asignar</option>
-                    <c:forEach var="formulario" items="${formularios}">
-                        <option value="${formulario.idFormulario}">${formulario.titulo}</option>
-                    </c:forEach>
-                </select>
-            </div>
-            <div class="form-btns">
-                <button type="button" class="btn" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i> Volver</button>
-                <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
-            </div>
+    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; gap: 10px; position: relative;">
+        <form method="get" action="GenerarReportesCoordiServlet" style="margin:0;">
+            <button type="submit" class="btn-descargar btn-descargar-mini" name="action" value="excel" title="Descargar Excel">
+                <i class="fa-solid fa-file-excel"></i>
+            </button>
         </form>
+    </div>
+    <div class="contenedor" style="margin-top: 0;">
+        <h2>Vista previa de Reporte de Coordinadores</h2>
+        <div class="tabla-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>DNI</th>
+                        <th>Correo electrónico</th>
+                        <th>Zona</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:choose>
+                        <c:when test="${empty coordinadores}">
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:#888; font-style:italic; background:#f5f7fa;">No se encontró información para los filtros seleccionados.</td>
+                            </tr>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach var="coordinador" items="${coordinadores}">
+                                <tr>
+                                    <td>${coordinador.usuario.nombre} ${coordinador.usuario.apellidopaterno} ${coordinador.usuario.apellidomaterno}</td>
+                                    <td>${coordinador.usuario.dni}</td>
+                                    <td>${coordinador.credencial.correo}</td>
+                                    <td>${coordinador.zonaTrabajoNombre}</td>
+                                    <td>
+                                        <span class="${coordinador.usuario.idEstado == 2 ? 'estado-activo' : 'estado-inactivo'}">
+                                            ${coordinador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </tbody>
+            </table>
+        </div>
     </div>
 </main>
 </body>
