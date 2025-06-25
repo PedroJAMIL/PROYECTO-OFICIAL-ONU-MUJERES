@@ -7,16 +7,11 @@
     List<Map<String, Object>> datosGraficoLineas = (List<Map<String, Object>>) request.getAttribute("datosGraficoLineas");
     Map<String, Map<Integer, Integer>> datosPorZona = new HashMap<>();
 
-    // Debug: imprimir datos recibidos
-    System.out.println("[JSP DEBUG] datosGraficoLineas: " + (datosGraficoLineas != null ? datosGraficoLineas.size() : "null"));
-
     if (datosGraficoLineas != null && !datosGraficoLineas.isEmpty()) {
         for (Map<String, Object> dato : datosGraficoLineas) {
             String zona = (String) dato.get("zona");
             Integer mes = (Integer) dato.get("mes");
             Integer cantidad = (Integer) dato.get("formularios_completados");
-
-            System.out.println("[JSP DEBUG] Zona: " + zona + ", Mes: " + mes + ", Cantidad: " + cantidad);
 
             if (!datosPorZona.containsKey(zona)) {
                 datosPorZona.put(zona, new HashMap<>());
@@ -25,26 +20,34 @@
         }
     }
 
-    // Crear JSON manualmente en lugar de usar la librería JSONObject
-    StringBuilder jsonBuilder = new StringBuilder();
-    jsonBuilder.append("{");
-    boolean first = true;    for (Map.Entry<String, Map<Integer, Integer>> entry : datosPorZona.entrySet()) {
-    if (!first) jsonBuilder.append(",");
-    // Escapar el nombre de la zona para evitar problemas con caracteres especiales
-    String zonaNombre = entry.getKey().replace("\"", "\\\"").replace("\\", "\\\\");
-    jsonBuilder.append("\"").append(zonaNombre).append("\":[");
-    for (int mes = 1; mes <= 12; mes++) {
-        if (mes > 1) jsonBuilder.append(",");
-        Integer valor = entry.getValue().get(mes);
-        jsonBuilder.append(valor != null ? valor : 0);
-    }
-    jsonBuilder.append("]");
-    first = false;
-}    jsonBuilder.append("}");
-    String jsonDatosGrafico = jsonBuilder.toString();
+    // Crear JSON para JavaScript
+    StringBuilder jsonDatos = new StringBuilder("{");
+    boolean primera = true;
+    for (Map.Entry<String, Map<Integer, Integer>> entry : datosPorZona.entrySet()) {
+        if (!primera) jsonDatos.append(",");
+        jsonDatos.append("'").append(entry.getKey()).append("':[");
 
-    System.out.println("[JSP DEBUG] JSON generado: " + jsonDatosGrafico);
-    System.out.println("[JSP DEBUG] Zonas encontradas: " + datosPorZona.keySet());
+        for (int mes = 1; mes <= 12; mes++) {
+            if (mes > 1) jsonDatos.append(",");
+            Integer valor = entry.getValue().get(mes);
+            jsonDatos.append(valor != null ? valor : 0);
+        }
+        jsonDatos.append("]");
+        primera = false;
+    }
+    jsonDatos.append("}");
+
+    // DEBUG: Agregar logs para ver qué se está generando
+    System.out.println("=== DEBUG JSP DASHBOARD ===");
+    System.out.println("datosGraficoLineas size: " + (datosGraficoLineas != null ? datosGraficoLineas.size() : "null"));
+    System.out.println("datosPorZona size: " + datosPorZona.size());
+    System.out.println("JSON generado: " + jsonDatos.toString());
+    
+    for (Map.Entry<String, Map<Integer, Integer>> entry : datosPorZona.entrySet()) {
+        System.out.println("Zona: '" + entry.getKey() + "' -> " + entry.getValue());
+    }
+    
+    request.setAttribute("jsonDatosGrafico", jsonDatos.toString());
 %>
 <html>
 <head>
@@ -65,7 +68,7 @@
         margin: 0;
         padding: 0;
         color: #333;
-        overflow: hidden;
+        overflow: hidden; /* Ocultar tanto horizontal como vertical */
         height: 100vh;
     }
 
@@ -74,10 +77,10 @@
     .contenedor-principal {
         width: 100%;
         margin: 0;
-        padding: 20px 20px 10px 20px;
+        padding: 15px 20px 15px 20px; /* Reducir padding */
         box-sizing: border-box;
         height: calc(100vh - 56.8px);
-        overflow: hidden;
+        overflow-y: hidden; /* Ocultar scroll vertical */
     }
 
     .sidebar {
@@ -292,32 +295,32 @@
                                              border-radius: 24px;
                                              box-shadow: 0 8px 32px rgba(52, 152, 219, 0.12), 0 1.5px 8px rgba(52, 152, 219, 0.10);
                                              border: 2px solid #b3ccff;
-                                             padding: 10px 15px;
+                                             padding: 12px 20px 15px 20px; /* Reducir padding */
                                              max-width: 1400px;
                                              margin: 0 auto;
                                              transition: box-shadow 0.2s;
-                                             height: 100%;
-                                             overflow: hidden;
+                                             height: calc(100vh - 116.8px); /* Volver a height fijo */
                                          }.dashboard-grid {
                                               display: grid;
                                               grid-template-columns: 0.6fr 1.4fr;
                                               grid-template-rows: 1fr 1fr;
-                                              gap: 15px;
+                                              gap: 15px; /* Reducir gap */
                                               padding: 0;
-                                              height: 100%;
+                                              height: calc(100vh - 200px); /* Reducir altura */
                                               align-items: stretch;
                                           }        .main-chart-container {
                                                        background: #ffffff;
                                                        border-radius: 16px;
                                                        box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
                                                        border: 1px solid #e1ecf4;
-                                                       padding: 12px;
+                                                       padding: 10px 12px 12px 12px; /* Reducir padding */
                                                        text-align: center;
                                                        display: flex;
                                                        flex-direction: column;
                                                        align-items: center;
                                                        justify-content: center;
                                                        height: 100%;
+                                                       min-height: 220px; /* Reducir altura mínima */
                                                    }.future-chart-container {
                                                         background: #ffffff;
                                                         border-radius: 16px;
@@ -330,94 +333,165 @@
                                                         justify-content: center;
                                                         color: #ccc;
                                                         font-size: 1.1rem;
-                                                        min-height: 300px;                                                    }        .bar-chart-container {
-                                                                                                                                           background: #ffffff;
-                                                                                                                                           border-radius: 16px;
-                                                                                                                                           box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
-                                                                                                                                           border: 1px solid #e1ecf4;
-                                                                                                                                           padding: 20px;
-                                                                                                                                           text-align: center;
-                                                                                                                                           display: flex;
-                                                                                                                                           flex-direction: column;
-                                                                                                                                           height: 100%;
-                                                                                                                                           min-height: 400px;
-                                                                                                                                       }        .chart-title {
-                                                                                                                                                    font-size: 1.1rem;
-                                                                                                                                                    font-weight: bold;
-                                                                                                                                                    color: #333;
-                                                                                                                                                    margin: 0 0 15px 0;
-                                                                                                                                                }        .chart-container {
-                                                                                                                                                             position: relative;
-                                                                                                                                                             height: 190px;
-                                                                                                                                                             width: 100%;
-                                                                                                                                                             max-width: 210px;
-                                                                                                                                                             margin: 0 auto;
-                                                                                                                                                             display: flex;
-                                                                                                                                                             align-items: center;
-                                                                                                                                                             justify-content: center;
-                                                                                                                                                         }    .bar-chart-container .chart-container {
-                                                                                                                                                                  flex: 1;
-                                                                                                                                                                  height: 350px;
-                                                                                                                                                                  max-width: 100%;
-                                                                                                                                                                  width: 100%;
-                                                                                                                                                                  margin: 0;
-                                                                                                                                                                  position: relative;
-                                                                                                                                                              }.chart-legend {
-                                                                                                                                                                   display: flex;
-                                                                                                                                                                   justify-content: center;
-                                                                                                                                                                   gap: 12px;
-                                                                                                                                                                   margin-top: 8px;
-                                                                                                                                                                   flex-wrap: wrap;
-                                                                                                                                                               }        .legend-item {
-                                                                                                                                                                            display: flex;
-                                                                                                                                                                            align-items: center;
-                                                                                                                                                                            gap: 6px;
-                                                                                                                                                                            font-size: 0.9rem;
-                                                                                                                                                                        }.legend-color {
-                                                                                                                                                                             width: 12px;
-                                                                                                                                                                             height: 12px;
-                                                                                                                                                                             border-radius: 3px;
-                                                                                                                                                                         }@media (max-width: 1100px) {
+                                                        min-height: 300px;
+                                                    }        .bar-chart-container {
+                                                                 background: #ffffff;
+                                                                 border-radius: 16px;
+                                                                 box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+                                                                 border: 1px solid #e1ecf4;
+                                                                 padding: 10px 15px 15px 15px; /* Reducir padding */
+                                                                 text-align: center;
+                                                                 display: flex;
+                                                                 flex-direction: column;
+                                                                 align-items: center;
+                                                                 justify-content: center;
+                                                                 height: 100%;
+                                                                 min-height: 460px; /* Reducir altura mínima considerablemente */
+                                                             }        .chart-title {
+                                                                          font-size: 1rem; /* Reducir tamaño de título */
+                                                                          font-weight: bold;
+                                                                          color: #333;
+                                                                          margin: 0 0 2px 0; /* Reducir margen */
+                                                                      }        .chart-container {
+                                                                                   position: relative;
+                                                                                   height: 150px; /* Reducir altura */
+                                                                                   width: 100%;
+                                                                                   max-width: 180px; /* Reducir ancho máximo */
+                                                                                   margin: 0 auto 8px auto; /* Reducir margen */
+                                                                                   display: flex;
+                                                                                   align-items: center;
+                                                                                   justify-content: center;
+                                                                               }
+    .bar-chart-container .chart-container {
+        height: calc(100% - 60px); /* Reducir altura considerando menos espacio */
+        max-width: 100%;
+        width: 100%;
+        margin: 0 auto 10px auto; /* Reducir margen */
+    }        .chart-legend {
+                 display: flex;
+                 justify-content: center;
+                 gap: 10px; /* Reducir gap */
+                 margin-top: 8px; /* Reducir margen */
+                 margin-bottom: 5px; /* Reducir margen */
+                 flex-wrap: wrap;
+                 padding: 0 8px; /* Reducir padding */
+             }        .legend-item {
+                          display: flex;
+                          align-items: center;
+                          gap: 5px; /* Reducir gap */
+                          font-size: 0.85rem; /* Reducir tamaño de fuente */
+                      }.legend-color {
+                           width: 10px; /* Reducir tamaño */
+                           height: 10px; /* Reducir tamaño */
+                           border-radius: 2px;
+                       }@media (max-width: 1100px) {
         .dashboard-grid {
             grid-template-columns: 1fr;
             grid-template-rows: auto auto auto;
-            gap: 10px;
+            gap: 12px;
+            height: auto;
         }
         .dashboard-wrapper {
-            padding: 10px;
-            margin: 0 auto;
-            height: 100%;
+            padding: 12px 15px 15px 15px;
+            height: auto;
         }
         .contenedor-principal {
-            padding: 15px 15px 10px 15px;
+            padding: 12px 15px 15px 15px;
+            overflow-y: auto;
         }
         .bar-chart-container {
             grid-row: auto !important;
+            min-height: 320px; /* Reducir altura para móvil */
+        }
+        .main-chart-container {
+            min-height: 200px; /* Reducir altura para móvil */
         }
     }        @media (max-width: 700px) {
         .chart-legend {
-            gap: 10px;
+            gap: 8px;
+            margin-top: 6px;
+            margin-bottom: 4px;
         }
         .chart-container {
-            height: 180px;
-            max-width: 200px;
+            height: 140px; /* Reducir más para móvil */
+            max-width: 160px;
+            margin-bottom: 6px;
         }
         .dashboard-wrapper {
-            padding: 8px;
-            margin: 0 auto;
-            height: 100%;
+            padding: 10px 12px 15px 12px;
+            height: auto;
         }
         .contenedor-principal {
-            padding: 10px 10px 5px 10px;
+            padding: 8px 10px 12px 10px;
+            overflow-y: auto;
         }
         .dashboard-grid {
             grid-template-columns: 1fr;
             grid-template-rows: auto auto auto;
-            gap: 8px;
+            gap: 10px;
         }
         .bar-chart-container {
             grid-row: auto !important;
+            min-height: 280px;
+            padding: 10px 8px 15px 8px;
         }
+        .main-chart-container {
+            min-height: 180px;
+            padding: 8px 6px 10px 6px;
+        }
+        .chart-title {
+            font-size: 0.9rem;
+        }
+        .legend-item {
+            font-size: 0.8rem;
+            gap: 4px;
+        }
+        .export-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+    }    /* Estilos para el botón de exportar */
+    
+    .export-section {
+        padding: 8px 0 10px 0;
+        border-bottom: 2px solid #e1ecf4;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: flex-end; /* Volver a flex-end para centrar a la derecha */
+        align-items: center;
+    }
+    
+    .export-btn {
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .export-btn:hover {
+        background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+    }
+
+    .export-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+
+    .export-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
     }
 </style>
 </head>
@@ -481,6 +555,15 @@
 <!-- Contenido principal -->
 <main class="contenedor-principal">
     <div class="dashboard-wrapper">
+        <!-- BARRA SUPERIOR SOLO CON BOTÓN DE EXPORTAR -->
+        <div class="export-section" style="margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center;">
+            <!-- Botón de exportar -->
+            <button id="exportarReporte" class="export-btn" onclick="exportarReporteDashboard()">
+                <i class="fas fa-file-excel"></i>
+                Generar Reporte Excel
+            </button>
+        </div>
+        
         <div class="dashboard-grid">
             <!-- Gráfico de Encuestadores -->
             <div class="main-chart-container" style="grid-column: 1; grid-row: 1;">
@@ -502,11 +585,13 @@
                 <div class="chart-legend" id="coordinadoresLegend">
                     <!-- La leyenda se generará dinámicamente con JavaScript -->
                 </div>
-            </div>            <!-- Gráfico de líneas para formularios por zona -->
+            </div>
+
+            <!-- Gráfico de líneas para formularios por zona -->
             <div class="bar-chart-container" style="grid-column: 2; grid-row: 1 / -1;">
                 <h3 class="chart-title">Formularios por Zona Geográfica</h3>
                 <div class="chart-container">
-                    <canvas id="barChart" style="width: 100% !important; height: 100% !important; display: block;"></canvas>
+                    <canvas id="barChart"></canvas>
                 </div>
             </div>
         </div>
@@ -514,57 +599,55 @@
 </main>
 
 <script>
-    // Datos dinámicos desde el backend (con valores por defecto para prueba)
+    // Datos dinámicos desde el backend
     const encuestadores = {
-        activos: Number('${encuestadoresActivos}') || 45,
-        inactivos: Number('${encuestadoresDesactivos}') || 8
+        activos: Number('${encuestadoresActivos}') || 0,
+        inactivos: Number('${encuestadoresDesactivos}') || 0
     };
     const coordinadores = {
-        activos: Number('${coordinadoresActivos}') || 12,
-        inactivos: Number('${coordinadoresDesactivos}') || 3
+        activos: Number('${coordinadoresActivos}') || 0,
+        inactivos: Number('${coordinadoresDesactivos}') || 0
     };
 
+    // Datos del gráfico
+    const datosReales = <c:out value="${jsonDatosGrafico}" escapeXml="false" />;
+    const datosAUsar = datosReales;
+    
+    // Variables globales para los gráficos
+    let chartEncuestadores, chartCoordinadores, chartFormularios;
+
+    console.log('=== DATOS INICIALES ===');
+    console.log('Encuestadores:', encuestadores);
+    console.log('Coordinadores:', coordinadores);
+    console.log('Datos gráfico:', datosAUsar);
+    console.log('Zonas disponibles:', Object.keys(datosAUsar));
+
     document.addEventListener("DOMContentLoaded", function() {
-        // Calcular totales
-        const totalEncuestadores = encuestadores.activos + encuestadores.inactivos;
-        const totalCoordinadores = coordinadores.activos + coordinadores.inactivos;
+        // Crear todos los gráficos
+        crearGraficos();
+    });
 
-        // Función para crear leyendas dinámicas
-        function createLegend(containerId, data, colors, labels) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
+    function crearGraficos() {
+        crearGraficoEncuestadores();
+        crearGraficoCoordinadores();
+        crearGraficoFormularios();
+    }
 
-            data.forEach((value, index) => {
-                const legendItem = document.createElement('div');
-                legendItem.className = 'legend-item';
-
-                const colorBox = document.createElement('div');
-                colorBox.className = 'legend-color';
-                colorBox.style.backgroundColor = colors[index];
-
-                const text = document.createElement('span');
-                text.textContent = labels[index] + ': (' + value + ')';
-
-                legendItem.appendChild(colorBox);
-                legendItem.appendChild(text);
-                container.appendChild(legendItem);
-            });
+    function crearGraficoEncuestadores() {
+        const encCtx = document.getElementById('encuestadoresChart').getContext('2d');
+        
+        // Destruir gráfico existente
+        if (chartEncuestadores) {
+            chartEncuestadores.destroy();
+        }
+        
+        if (encuestadores.activos + encuestadores.inactivos === 0) {
+            const container = document.querySelector('#encuestadoresChart').parentNode;
+            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 0.9rem;">No hay datos de encuestadores</div>';
+            return;
         }
 
-        // Crear leyendas
-        createLegend('encuestadoresLegend',
-            [encuestadores.activos, encuestadores.inactivos],
-            ['#27ae60', '#e74c3c'],
-            ['Activos', 'Inactivos']
-        );
-
-        createLegend('coordinadoresLegend',
-            [coordinadores.activos, coordinadores.inactivos],
-            ['#3498db', '#f39c12'],
-            ['Activos', 'Inactivos']
-        );
-
-        // Plugin para mostrar el número total en el centro del gráfico
+        // Plugin para mostrar el número total en el centro
         const centerTextPlugin = {
             id: 'centerText',
             beforeDraw: function(chart) {
@@ -590,9 +673,7 @@
             }
         };
 
-        // Crear el gráfico de Encuestadores
-        const encCtx = document.getElementById('encuestadoresChart').getContext('2d');
-        new Chart(encCtx, {
+        chartEncuestadores = new Chart(encCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Activos', 'Inactivos'],
@@ -637,7 +718,7 @@
                 },
                 animation: {
                     animateRotate: true,
-                    duration: 1500,
+                    duration: 1000,
                     easing: 'easeInOutQuart'
                 },
                 hover: { animationDuration: 300 }
@@ -645,9 +726,55 @@
             plugins: [centerTextPlugin]
         });
 
-        // Crear el gráfico de Coordinadores
+        // Crear leyenda
+        crearLeyenda('encuestadoresLegend', 
+            [encuestadores.activos, encuestadores.inactivos], 
+            ['#27ae60', '#e74c3c'], 
+            ['Activos', 'Inactivos']
+        );
+    }
+
+    function crearGraficoCoordinadores() {
         const coordCtx = document.getElementById('coordinadoresChart').getContext('2d');
-        new Chart(coordCtx, {
+        
+        // Destruir gráfico existente
+        if (chartCoordinadores) {
+            chartCoordinadores.destroy();
+        }
+        
+        if (coordinadores.activos + coordinadores.inactivos === 0) {
+            const container = document.querySelector('#coordinadoresChart').parentNode;
+            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 0.9rem;">No hay datos de coordinadores</div>';
+            return;
+        }
+
+        // Plugin para mostrar el número total en el centro
+        const centerTextPlugin = {
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                if (chart.config.type === 'doughnut') {
+                    const width = chart.width;
+                    const height = chart.height;
+                    const ctx = chart.ctx;
+
+                    ctx.restore();
+                    const fontSize = (height / 114).toFixed(2);
+                    ctx.font = fontSize + "em sans-serif";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#333";
+
+                    const total = chart.config.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    const text = total.toString();
+                    const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                    const textY = height / 2;
+
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+                }
+            }
+        };
+
+        chartCoordinadores = new Chart(coordCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Activos', 'Inactivos'],
@@ -692,222 +819,227 @@
                 },
                 animation: {
                     animateRotate: true,
-                    duration: 1500,
+                    duration: 1000,
                     easing: 'easeInOutQuart'
                 },
                 hover: { animationDuration: 300 }
             },
-            plugins: [centerTextPlugin]        });        // === GRÁFICO DE FORMULARIOS POR ZONA ===
-        console.log("=== INICIANDO GRÁFICO DE ZONA ===");
+            plugins: [centerTextPlugin]
+        });
 
-        // Verificar elementos necesarios
-        const barCanvas = document.getElementById('barChart');
-        const chartContainer = document.querySelector('.bar-chart-container .chart-container');
+        // Crear leyenda
+        crearLeyenda('coordinadoresLegend', 
+            [coordinadores.activos, coordinadores.inactivos], 
+            ['#3498db', '#f39c12'], 
+            ['Activos', 'Inactivos']
+        );
+    }
 
-        console.log("Canvas encontrado:", barCanvas);
-        console.log("Container encontrado:", chartContainer);
-
-        if (chartContainer) {
-            const containerStyles = window.getComputedStyle(chartContainer);
-            console.log("Container dimensions:", {
-                width: containerStyles.width,
-                height: containerStyles.height,
-                display: containerStyles.display,
-                position: containerStyles.position
-            });
+    function crearGraficoFormularios() {
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        
+        // Destruir gráfico existente
+        if (chartFormularios) {
+            chartFormularios.destroy();
         }
 
-        if (!barCanvas) {
-            console.error('ERROR: Canvas #barChart no encontrado');
-            if (chartContainer) {
-                chartContainer.innerHTML = '<div style="color: red; padding: 20px;">ERROR: Canvas no encontrado</div>';
-            }
+        // Obtener todas las zonas
+        const zonasAMostrar = Object.keys(datosAUsar);
+
+        if (zonasAMostrar.length === 0) {
+            const chartContainer = document.querySelector('.bar-chart-container .chart-container');
+            chartContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 1.1rem;">No hay datos disponibles para mostrar</div>';
             return;
         }
 
-        if (typeof Chart === 'undefined') {
-            console.error('ERROR: Chart.js no está cargado');
-            barCanvas.parentElement.innerHTML = '<div style="text-align: center; color: red; padding: 20px;">Error: Chart.js no disponible</div>';
-            return;
-        }
+        const colores = ['#e74c3c', '#27ae60', '#3498db', '#f39c12', '#9b59b6', '#e67e22', '#1abc9c', '#34495e'];
 
-        console.log("Canvas y Chart.js OK");
-        // Mostrar mensaje temporal para verificar que el contenedor es visible
-        if (chartContainer) {
-            chartContainer.style.border = "2px solid red";
-            chartContainer.style.backgroundColor = "#f0f0f0";
-        }
-
-        // === OBTENER DATOS REALES DEL BACKEND ===
-        let datosReales = {};
-
-        // Usar los datos reales del JSON generado en el backend
-        try {
-            const jsonData = '<%= jsonDatosGrafico %>';
-            console.log("JSON del backend:", jsonData);
-
-            if (jsonData && jsonData !== "null" && jsonData !== "{}") {
-                datosReales = JSON.parse(jsonData);
-                console.log("Datos reales parseados:", datosReales);
-            }
-        } catch (e) {
-            console.error("Error al parsear JSON del backend:", e);
-        }
-
-        // Si no hay datos reales, usar datos de ejemplo
-        const datosAUsar = Object.keys(datosReales).length > 0 ? datosReales : {
-            'Zona Norte': [12, 19, 15, 25, 22, 30, 28, 35, 32, 38, 25, 30],
-            'Zona Sur': [8, 14, 12, 18, 16, 22, 20, 25, 23, 28, 18, 22],
-            'Zona Este': [5, 9, 8, 12, 10, 15, 14, 18, 16, 20, 12, 15],
-            'Zona Oeste': [7, 11, 10, 14, 12, 18, 16, 21, 19, 24, 15, 18]
-        };
-        console.log("Datos finales a usar:", datosAUsar);
-
-        // Obtener las zonas disponibles
-        const zonasDisponibles = Object.keys(datosAUsar);
-        const colores = ['#e74c3c', '#27ae60', '#3498db', '#f39c12', '#9b59b6', '#e67e22'];
-
-        console.log("Zonas disponibles:", zonasDisponibles);
-        console.log("Número de zonas:", zonasDisponibles.length);
-        console.log("Procediendo a crear el gráfico con", zonasDisponibles.length, "zonas");
-        // Crear datasets para el gráfico
-        const datasets = zonasDisponibles.map((zona, index) => ({
+        const datasets = zonasAMostrar.map((zona, index) => ({
             label: zona,
-            data: datosAUsar[zona],
+            data: Array.from({length: 12}, (_, mes) => {
+                if (datosAUsar[zona] && datosAUsar[zona][mes] !== undefined) {
+                    return datosAUsar[zona][mes];
+                }
+                return 0;
+            }),
             borderColor: colores[index % colores.length],
-            backgroundColor: colores[index % colores.length] + '20',
+            backgroundColor: colores[index % colores.length].replace('rgb', 'rgba').replace(')', ', 0.1)'),
             borderWidth: 3,
             pointBackgroundColor: colores[index % colores.length],
             pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
             pointRadius: 6,
-            pointHoverRadius: 8,            tension: 0.4
+            pointHoverRadius: 8,
+            tension: 0.4
         }));
 
-        console.log("Datasets creados:", datasets);
-
-        // Crear configuración del gráfico
-        const formulariosData = {
-            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-            datasets: datasets
-        };
-
-        console.log("Datos finales para el gráfico:", formulariosData);
-
-        // Crear el gráfico
-        try {
-            const barCtx = barCanvas.getContext('2d');
-            const graficoFormularios = new Chart(barCtx, {
-                type: 'line',
-                data: formulariosData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 80,
-                            ticks: {
-                                stepSize: 10,
-                                color: '#666',
-                                font: {
-                                    size: 11
-                                }
-                            },
-                            grid: {
-                                color: '#e1e1e1',
-                                lineWidth: 1
-                            },
-                            title: {
-                                display: true,
-                                text: 'Cantidad de Formularios',
-                                color: '#666',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            }
+        chartFormularios = new Chart(barCtx, {
+            type: 'line',
+            data: {
+                labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 80,
+                        ticks: {
+                            stepSize: 10,
+                            color: '#666',
+                            font: { size: 11 }
                         },
-                        x: {
-                            ticks: {
-                                color: '#666',
-                                font: {
-                                    size: 11
-                                }
-                            },
-                            grid: {
-                                color: '#e1e1e1',
-                                lineWidth: 1
-                            },
-                            title: {
-                                display: true,
-                                text: 'Meses del Año',
-                                color: '#666',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
+                        grid: {
+                            color: '#e1e1e1',
+                            lineWidth: 1
+                        },
+                        title: {
                             display: true,
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                padding: 15,
-                                font: {
-                                    size: 12
-                                }
-                            }
+                            text: 'Cantidad de Formularios',
+                            color: '#666',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#666',
+                            font: { size: 11 }
                         },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: '#3498db',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            callbacks: {
-                                title: function(context) {
-                                    return context[0].label;
-                                },
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + (context.parsed.y || 'Sin datos') + ' formularios';
-                                }
+                        grid: {
+                            color: '#e1e1e1',
+                            lineWidth: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Meses del Año',
+                            color: '#666',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                weight: 'normal'
                             }
                         }
                     },
-                    animation: {
-                        duration: 1500,
-                        easing: 'easeInOutQuart'                },
-                    hover: {
-                        animationDuration: 300
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#3498db',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return context.dataset.label + ': ' + (context.parsed.y || 'Sin datos') + ' formularios';
+                            }
+                        }
                     }
-                }            });
-
-            console.log("Gráfico de formularios por zona creado exitosamente");
-
-            // Remover el borde de diagnóstico después de crear el gráfico
-            setTimeout(() => {
-                if (chartContainer) {
-                    chartContainer.style.border = "";
-                    chartContainer.style.backgroundColor = "";
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                },
+                hover: {
+                    animationDuration: 300
                 }
-            }, 2000);
-
-        } catch (error) {            console.error("ERROR al crear el gráfico:", error);
-            if (chartContainer) {
-                chartContainer.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">Error al crear gráfico: ' + error.message + '</div>';
             }
+        });
+    }
+
+    function crearLeyenda(containerId, data, colors, labels) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        data.forEach((value, index) => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+
+            const colorBox = document.createElement('div');
+            colorBox.className = 'legend-color';
+            colorBox.style.backgroundColor = colors[index];
+
+            const text = document.createElement('span');
+            text.textContent = labels[index] + ': (' + value + ')';
+
+            legendItem.appendChild(colorBox);
+            legendItem.appendChild(text);
+            container.appendChild(legendItem);
+        });
+    }
+
+    // Función para exportar el reporte del dashboard
+    function exportarReporteDashboard() {
+        const btn = document.getElementById('exportarReporte');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+        btn.disabled = true;
+        
+        console.log('=== INICIANDO EXPORTACIÓN ===');
+        console.log('Encuestadores:', encuestadores);
+        console.log('Coordinadores:', coordinadores);
+        console.log('Datos gráfico disponibles:', datosAUsar);
+        
+        try {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'ExportarReporteDashboardServlet';
+            form.target = '_blank';
+            form.style.display = 'none';
+            
+            const campos = {
+                'encuestadoresActivos': encuestadores.activos || 0,
+                'encuestadoresInactivos': encuestadores.inactivos || 0,
+                'coordinadoresActivos': coordinadores.activos || 0,
+                'coordinadoresInactivos': coordinadores.inactivos || 0,
+                'datosGraficoFormularios': JSON.stringify(datosAUsar || {})
+            };
+            
+            Object.keys(campos).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = campos[key];
+                form.appendChild(input);
+            });
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> ¡Enviado!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Error en JavaScript:', error);
+            alert('Error al generar el reporte: ' + error.message);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
-    });
+    }
 </script>
 </body>
 </html>

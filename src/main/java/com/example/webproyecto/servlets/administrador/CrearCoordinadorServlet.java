@@ -25,32 +25,27 @@ public class CrearCoordinadorServlet extends HttpServlet {
             throws ServletException, IOException {
         DistritoDao distritoDao = new DistritoDao();
         ZonaDao zonaDao = new ZonaDao();
-        FormularioDao formularioDao = new FormularioDao(); // <--- ¡NUEVO! Instancia FormularioDao
+        FormularioDao formularioDao = new FormularioDao();
 
         List<Distrito> listaDistritos = null;
         List<Zona> listaZonas = null;
-        List<Formulario> listaFormularios = null; // <--- ¡NUEVO! Variable para formularios
+        List<Formulario> listaFormularios = null;
 
         try {
             listaDistritos = distritoDao.listarDistritos();
             listaZonas = zonaDao.listarZonas();
-            listaFormularios = formularioDao.listarFormularios(); // <--- ¡NUEVO! Carga los formularios
-
-
+            listaFormularios = formularioDao.listarFormularios();
         } catch (SQLException e) {
-            e.printStackTrace(); // Imprime el error de SQL
+            e.printStackTrace();
             request.setAttribute("errorCarga", "Error al cargar datos de distritos, zonas o formularios.");
-            // Si hay un error, puedes considerar redirigir a una página de error
-            // o simplemente continuar y que los combobox queden vacíos (pero con el mensaje de error).
-        } catch (Exception e) { // Captura cualquier otra excepción
+        } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("errorCarga", "Ocurrió un error inesperado al cargar datos.");
         }
 
-
         request.setAttribute("distritos", listaDistritos);
         request.setAttribute("zonas", listaZonas);
-        request.setAttribute("formularios", listaFormularios); // <--- ¡NUEVO! Establece el atributo 'formularios'
+        request.setAttribute("formularios", listaFormularios);
 
         request.getRequestDispatcher("admin/crearCoordinador.jsp").forward(request, response);
     }
@@ -68,7 +63,6 @@ public class CrearCoordinadorServlet extends HttpServlet {
         int idEstado = 2; // Activo
 
         String fotoBase64 = null;
-        String nombrefoto = null;
 
         UsuarioDao usuarioDao = new UsuarioDao();
         CredencialDao credencialDao = new CredencialDao();
@@ -135,7 +129,6 @@ public class CrearCoordinadorServlet extends HttpServlet {
             // usuario.setIdFormularioAsignado(idFormularioAsignado); // Descomenta si aplica
 
             usuario.setFoto(fotoBase64); // Considera si 'fotoBase64' y 'nombrefoto' siempre serán null aquí
-            usuario.setNombrefoto(nombrefoto);
 
             boolean usuarioCreado = usuarioDao.insertarUsuario(usuario);
 

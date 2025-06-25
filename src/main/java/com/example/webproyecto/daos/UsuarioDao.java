@@ -402,12 +402,11 @@ public class UsuarioDao {
     }
 
     public boolean insertarUsuario(Usuario usuario) throws SQLException {
-        // **¡¡¡CAMBIO CRÍTICO AQUÍ: ACTUALIZAR LA SENTENCIA SQL Y LOS PLACEHOLDERS!!!**
-        // Columnas en DB: nombre, apellidopaterno, apellidomaterno, dni, direccion, idrol, iddistrito, idDistritoTrabajo, idestado, foto, nombrefoto, idZonaTrabajo
+        // Columnas en DB: nombre, apellidopaterno, apellidomaterno, dni, direccion, idrol, iddistrito, idDistritoTrabajo, idestado, foto, idZonaTrabajo
         String sql = "INSERT INTO usuario (" +
                 "nombre, apellidopaterno, apellidomaterno, dni, direccion, " +
-                "idrol, iddistrito, idDistritoTrabajo, idestado, foto, nombrefoto, idZonaTrabajo" +
-                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // ¡12 PLACEHOLDERS!
+                "idrol, iddistrito, idDistritoTrabajo, idestado, foto, idZonaTrabajo" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // 11 PLACEHOLDERS
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -417,50 +416,37 @@ public class UsuarioDao {
             pstmt.setString(3, usuario.getApellidomaterno());
             pstmt.setString(4, usuario.getDni());
             pstmt.setString(5, usuario.getDireccion());
-            pstmt.setInt(6, usuario.getIdRol()); // idRol
-            pstmt.setInt(7, usuario.getIdDistrito()); // idDistrito de residencia
+            pstmt.setInt(6, usuario.getIdRol());
+            pstmt.setInt(7, usuario.getIdDistrito());
 
-            // idDistritoTrabajo (posición 8)
             if (usuario.getIdDistritoTrabajo() != null) {
                 pstmt.setInt(8, usuario.getIdDistritoTrabajo());
             } else {
                 pstmt.setNull(8, java.sql.Types.INTEGER);
             }
 
-            pstmt.setInt(9, usuario.getIdEstado()); // idEstado (posición 9)
+            pstmt.setInt(9, usuario.getIdEstado());
 
-            // Manejo de 'foto' (longblob) y 'nombrefoto' (varchar)
-            // 'usuario.getFoto()' (String) ahora se asume que es el contenido de la foto en Base64
-            // 'usuario.getNombrefoto()' (String) es el nombre del archivo
             if (usuario.getFoto() != null && !usuario.getFoto().isEmpty()) {
                 try {
                     byte[] fotoBytes = Base64.getDecoder().decode(usuario.getFoto());
-                    pstmt.setBlob(10, new java.io.ByteArrayInputStream(fotoBytes)); // Para la columna 'foto' (BLOB)
+                    pstmt.setBlob(10, new java.io.ByteArrayInputStream(fotoBytes));
                 } catch (IllegalArgumentException e) {
                     System.err.println("Advertencia: La cadena de foto no es un Base64 válido. Se insertará NULL para la foto binaria.");
-                    pstmt.setNull(10, java.sql.Types.BLOB); // Si no es Base64 válido, insertar NULL
+                    pstmt.setNull(10, java.sql.Types.BLOB);
                 }
             } else {
-                pstmt.setNull(10, java.sql.Types.BLOB); // Si no hay foto, insertar NULL
+                pstmt.setNull(10, java.sql.Types.BLOB);
             }
 
-            // nombrefoto (posición 11)
-            if (usuario.getNombrefoto() != null && !usuario.getNombrefoto().isEmpty()) {
-                pstmt.setString(11, usuario.getNombrefoto());
-            } else {
-                pstmt.setNull(11, java.sql.Types.VARCHAR);
-            }
-
-            // idZonaTrabajo (posición 12)
             if (usuario.getIdZonaTrabajo() != null) {
-                pstmt.setInt(12, usuario.getIdZonaTrabajo());
+                pstmt.setInt(11, usuario.getIdZonaTrabajo());
             } else {
-                pstmt.setNull(12, java.sql.Types.INTEGER);
+                pstmt.setNull(11, java.sql.Types.INTEGER);
             }
 
-            int rowsAffected = pstmt.executeUpdate();
-
-            if (rowsAffected > 0) {
+            int filasAfectadas = pstmt.executeUpdate();
+            if (filasAfectadas > 0) {
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         usuario.setIdUsuario(generatedKeys.getInt(1));
@@ -468,8 +454,8 @@ public class UsuarioDao {
                 }
                 return true;
             }
+            return false;
         }
-        return false;
     }
 
 

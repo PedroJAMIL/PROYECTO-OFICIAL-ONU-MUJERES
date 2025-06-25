@@ -480,14 +480,12 @@
     </div>
 </header>
 <main class="contenedor-principal">
-    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; gap: 10px; position: relative;">
-        <form method="get" action="GenerarReportesCoordiServlet" style="margin:0;">
+    <div class="contenedor" style="margin-top: 0; position: relative;">
+        <form method="get" action="GenerarReportesCoordiServlet" style="position: absolute; top: 18px; right: 18px; z-index: 10; margin:0;">
             <button type="submit" class="btn-descargar btn-descargar-mini" name="action" value="excel" title="Descargar Excel">
                 <i class="fa-solid fa-file-excel"></i>
             </button>
         </form>
-    </div>
-    <div class="contenedor" style="margin-top: 0;">
         <h2>Vista previa de Reporte de Coordinadores</h2>
         <div class="tabla-container">
             <table>

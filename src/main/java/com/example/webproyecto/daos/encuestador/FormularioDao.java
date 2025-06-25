@@ -106,27 +106,24 @@ public class FormularioDao {
             ps.executeUpdate();
         }
     }
-    public List<Formulario> listarFormularios() throws SQLException { // <--- Nombre de método consistente con otros DAOs
+    public List<Formulario> listarFormularios() throws SQLException {
         List<Formulario> formularios = new ArrayList<>();
-        // Se seleccionan todos los campos relevantes de la tabla
-        String sql = "SELECT idFormulario, titulo, descripcion, fechaCreacion, idCoordinador, idCarpeta, activo FROM formulario ORDER BY titulo";
-
-        try (Connection conn = Conexion.obtenerConexion(); // <--- Usando la clase Conexion
+        String sql = "SELECT idFormulario, titulo, descripcion, fechaCreacion, idCoordinador, idCarpeta FROM formulario ORDER BY titulo";
+        try (Connection conn = Conexion.obtenerConexion();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next()) {
                 Formulario f = new Formulario();
                 f.setIdFormulario(rs.getInt("idFormulario"));
                 f.setTitulo(rs.getString("titulo"));
                 f.setDescripcion(rs.getString("descripcion"));
-                // Convertir java.sql.Date a java.util.Date
                 f.setFechaCreacion(new java.util.Date(rs.getDate("fechaCreacion").getTime()));
                 f.setIdCoordinador(rs.getInt("idCoordinador"));
                 f.setIdCarpeta(rs.getInt("idCarpeta"));
-                f.setActivo(rs.getBoolean("activo"));
                 formularios.add(f);
             }
+        } catch (SQLException e) {
+            throw e;
         }
         return formularios;
     }
