@@ -1,7 +1,8 @@
 package com.example.webproyecto.servlets.coordinador;
-import com.google.gson.Gson;
 
+import com.example.webproyecto.daos.SesionRespuestaDao;
 import com.example.webproyecto.daos.UsuarioDao;
+import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -26,40 +27,34 @@ public class DashboardServlet extends HttpServlet {
 
         int idUsuarioCoordinador = (int) session.getAttribute("idUsuario");
         UsuarioDao usuarioDao = new UsuarioDao();
+        SesionRespuestaDao sesionRespuestaDao = new SesionRespuestaDao();
 
         // Datos para gráficos
-        int activosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, true);
-        int inactivosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, false);
+        int encuestadoresActivos = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, true);
+        int encuestadoresInactivos = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, false);
 
         Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZona(idUsuarioCoordinador);
-        // distritos -> nombreDistrito : [activos, inactivos]
-
         List<String> nombresDistritos = distritos.keySet().stream().toList();
         List<Integer> activos = distritos.values().stream().map(v -> v[0]).toList();
         List<Integer> inactivos = distritos.values().stream().map(v -> v[1]).toList();
 
-        // Pasar como JSON Strings
-        request.setAttribute("activosZona", activosZona);
-        request.setAttribute("inactivosZona", inactivosZona);
+        // Datos para gráfico de formularios por mes
+        List<Map<String, Object>> datosGraficoLineas = sesionRespuestaDao.obtenerFormulariosCompletadosPorEncuestadorYMes(idUsuarioCoordinador);
+
+        // Pasar atributos a la vista
+        request.setAttribute("encuestadoresActivos", encuestadoresActivos);
+        request.setAttribute("encuestadoresInactivos", encuestadoresInactivos);
+        request.setAttribute("datosGraficoLineas", datosGraficoLineas);
 
         Gson gson = new Gson();
         request.setAttribute("distritosJson", gson.toJson(nombresDistritos));
         request.setAttribute("activosDistritoJson", gson.toJson(activos));
         request.setAttribute("inactivosDistritoJson", gson.toJson(inactivos));
-        System.out.println("Distritos JSON: " + gson.toJson(nombresDistritos));
 
         request.setAttribute("nombre", session.getAttribute("nombre"));
         request.setAttribute("idUsuario", idUsuarioCoordinador);
         request.setAttribute("idrol", session.getAttribute("idrol"));
 
-        System.out.println("Distritos: " + new Gson().toJson(nombresDistritos));
-
         request.getRequestDispatcher("coordinador/jsp/VerDashboard.jsp").forward(request, response);
-    }
-
-    private String toJsonArray(List<?> list) {
-        return "[" + list.stream()
-                .map(item -> item instanceof String ? "\"" + item + "\"" : item.toString())
-                .collect(Collectors.joining(", ")) + "]";
     }
 }
