@@ -45,7 +45,8 @@ public class InicioCoordinadorServlet extends HttpServlet {
         int activosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, true);
         int inactivosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, false);
 
-        Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZona(idUsuarioCoordinador);
+        // Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZona(idUsuarioCoordinador);
+        Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZonaConEstados(idUsuarioCoordinador);
 
         List<String> nombresDistritos = distritos.keySet().stream().toList();
         List<Integer> activos = distritos.values().stream().map(v -> v[0]).toList();

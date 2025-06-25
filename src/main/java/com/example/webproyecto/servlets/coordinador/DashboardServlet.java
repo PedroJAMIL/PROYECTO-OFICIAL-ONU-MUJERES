@@ -31,7 +31,8 @@ public class DashboardServlet extends HttpServlet {
         int activosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, true);
         int inactivosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, false);
 
-        Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZona(idUsuarioCoordinador);
+        // Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZona(idUsuarioCoordinador);
+        Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZonaConEstados(idUsuarioCoordinador);
         // distritos -> nombreDistrito : [activos, inactivos]
 
         List<String> nombresDistritos = distritos.keySet().stream().toList();
