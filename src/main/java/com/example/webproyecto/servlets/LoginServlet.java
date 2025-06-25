@@ -33,6 +33,14 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("idZonaTrabajo", usuario.getIdZonaTrabajo());
             // Redirigir a servlets según el rol
             int idrol = usuario.getIdRol();
+
+            String rol = switch (idrol) {
+                case 1 -> "administrador";
+                case 2 -> "coordinador";
+                case 3 -> "encuestador";
+                default -> "desconocido";
+            };
+            session.setAttribute("rol", rol);
             if (idrol == 1) {
                 response.sendRedirect("InicioAdminServlet");
             } else if (idrol == 2) {
@@ -55,7 +63,30 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect("login.jsp");
+
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("idUsuario") != null) {
+            String rol = (String) session.getAttribute("rol");
+
+            switch (rol) {
+                case "administrador" -> response.sendRedirect("InicioAdminServlet");
+                case "coordinador" -> response.sendRedirect("InicioCoordinadorServlet");
+                case "encuestador" -> response.sendRedirect("InicioEncuestadorServlet");
+                default -> {
+                    session.invalidate();
+                    response.sendRedirect("login.jsp?error=rol");
+                }
+            }
+        } else {
+            // Mostrar popup si viene del registro exitoso
+            String popup = request.getParameter("popup");
+            request.setAttribute("popup", "1".equals(popup));
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+        }
     }
 
+
+
 }
+
+

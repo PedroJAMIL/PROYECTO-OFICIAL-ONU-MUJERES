@@ -12,15 +12,11 @@
 <%@ page session="true" %>
 
 <%
-    Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-    Integer idrol = (Integer) session.getAttribute("idrol");
-    String nombre = (String) session.getAttribute("nombre");
-
-    if (idUsuario == null || idrol == null || idrol != 3) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+    response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+    response.setDateHeader("Expires", 0); // Proxies
 %>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -28,6 +24,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Intranet - Encuestador</title>
+    <script>
+        // Bloquea el botón "Atrás" del navegador
+        history.pushState(null, "", location.href);
+        window.onpopstate = function () {
+            history.pushState(null, "", location.href);
+        };
+    </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 

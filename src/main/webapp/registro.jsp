@@ -8,12 +8,20 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-
+<%
+  response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+  response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+  response.setDateHeader("Expires", 0); // Proxies
+%>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <title>Registro de Usuario</title>
   <style>
     /* Reset básico */
@@ -153,6 +161,13 @@
 <!------------------------------------------------------------------------------------------------------------------------------------->
 
 <body>
+<script>
+  if (performance.navigation.type === 2) {
+    // Usuario volvió con el botón de atrás → forzar recarga
+    location.href = "LoginServlet";
+  }
+</script>
+
 <div class="main-container">
   <!-- Barra superior -->
   <header class="header-bar">
@@ -209,5 +224,12 @@
     Defensora mundial de la igualdad de género
   </footer>
 </div>
+<script>
+  // Si usuario vuelve a esta página con botón atrás, redirigirlo a login limpio
+  if (performance.navigation.type === 2) {
+    location.href = "LoginServlet";
+  }
+</script>
+
 </body>
 </html>

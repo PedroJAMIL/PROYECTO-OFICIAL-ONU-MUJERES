@@ -85,7 +85,7 @@ public class CredencialRegistroServlet extends HttpServlet {
                 // Insertar credencial
                 if (credencialDao.insertarCredencial(credencial)) {
                     // Redirigir a login con mensaje de éxito
-                    response.sendRedirect("login.jsp?registro=exito");
+                    response.sendRedirect("LoginServlet?popup=1");
                     return;
                 }
             }
