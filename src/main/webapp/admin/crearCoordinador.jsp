@@ -510,10 +510,16 @@
             </div>
             <div class="form-group">
                 <i class="fa-solid fa-file-alt"></i>
+                <!-- DEBUG: Mostrar si la lista de formularios está vacía o nula -->
+                <c:if test="${empty formularios}">
+                  <div style="color:red; font-weight:bold;">No hay formularios disponibles o hubo un error al cargarlos.</div>
+                </c:if>
                 <select id="idFormularioAsignado" name="idFormularioAsignado" class="form-input" required>
-                    <option value="">Selecciones formulario a asignar</option>
+                    <option value="">Seleccione formulario a asignar</option>
                     <c:forEach var="formulario" items="${formularios}">
-                        <option value="${formulario.idFormulario}">${formulario.titulo}</option>
+                        <option value="${formulario.idFormulario}">
+                            ${formulario.titulo}
+                        </option>
                     </c:forEach>
                 </select>
             </div>

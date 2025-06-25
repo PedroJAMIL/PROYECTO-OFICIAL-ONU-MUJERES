@@ -12,7 +12,6 @@ public class Usuario {
     private int idRol;
     private int idEstado;
     private String foto; // Esta propiedad se usará para el contenido BLOB (Base64)
-    private String nombrefoto; // ¡NUEVA PROPIEDAD! Para el nombre del archivo de la foto
 
     // --- NUEVAS PROPIEDADES ---
     private Integer idDistritoTrabajo; // Nuevo: Distrito de Trabajo
@@ -43,10 +42,6 @@ public class Usuario {
 
     public String getFoto() { return foto; } // Getter para el contenido de la foto (Base64)
     public void setFoto(String foto) { this.foto = foto; } // Setter para el contenido de la foto (Base64)
-
-    // NEW GETTERS AND SETTERS for nombrefoto
-    public String getNombrefoto() { return nombrefoto; }
-    public void setNombrefoto(String nombrefoto) { this.nombrefoto = nombrefoto; }
 
     // --- NUEVOS GETTERS Y SETTERS ---
     public Integer getIdDistritoTrabajo() { return idDistritoTrabajo; }

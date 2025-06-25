@@ -18,10 +18,6 @@ public class InicioCoordinadorServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 👉 Esto resuelve el problema del "R�mac"
-        response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8");
-
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("idUsuario") == null) {
@@ -49,7 +45,8 @@ public class InicioCoordinadorServlet extends HttpServlet {
         int activosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, true);
         int inactivosZona = usuarioDao.contarEncuestadoresPorZona(idUsuarioCoordinador, false);
 
-        Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZona(idUsuarioCoordinador);
+        // Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZona(idUsuarioCoordinador);
+        Map<String, int[]> distritos = usuarioDao.contarEncuestadoresPorDistritoEnZonaConEstados(idUsuarioCoordinador);
 
         List<String> nombresDistritos = distritos.keySet().stream().toList();
         List<Integer> activos = distritos.values().stream().map(v -> v[0]).toList();
