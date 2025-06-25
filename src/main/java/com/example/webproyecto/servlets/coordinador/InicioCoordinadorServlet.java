@@ -18,6 +18,10 @@ public class InicioCoordinadorServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // 👉 Esto resuelve el problema del "R�mac"
+        response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("idUsuario") == null) {
