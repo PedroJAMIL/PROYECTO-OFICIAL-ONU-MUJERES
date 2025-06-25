@@ -298,8 +298,8 @@ public class SesionRespuestaDao {
         """;
 
         try (Connection conn = DriverManager.getConnection(url, user, pass);
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
             System.out.println("[DEBUG] Ejecutando consulta de formularios por zona y mes");
             while (rs.next()) {

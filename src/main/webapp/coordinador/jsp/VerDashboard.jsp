@@ -1,10 +1,47 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ page import="java.util.*" %>
+<%
+  // Procesar datos del gráfico de líneas para JavaScript
+  List<Map<String, Object>> datosGraficoLineas = (List<Map<String, Object>>) request.getAttribute("datosGraficoLineas");
+  Map<String, Map<Integer, Integer>> datosPorEncuestador = new HashMap<>();
 
+  if (datosGraficoLineas != null && !datosGraficoLineas.isEmpty()) {
+    for (Map<String, Object> dato : datosGraficoLineas) {
+      String encuestador = (String) dato.get("encuestador");
+      Integer mes = (Integer) dato.get("mes");
+      Integer cantidad = (Integer) dato.get("formularios_completados");
+
+      if (!datosPorEncuestador.containsKey(encuestador)) {
+        datosPorEncuestador.put(encuestador, new HashMap<>());
+      }
+      datosPorEncuestador.get(encuestador).put(mes, cantidad);
+    }
+  }
+
+  // Crear JSON para JavaScript
+  StringBuilder jsonDatos = new StringBuilder("{");
+  boolean primera = true;
+  for (Map.Entry<String, Map<Integer, Integer>> entry : datosPorEncuestador.entrySet()) {
+    if (!primera) jsonDatos.append(",");
+    jsonDatos.append("'").append(entry.getKey()).append("':[");
+
+    for (int mes = 1; mes <= 12; mes++) {
+      if (mes > 1) jsonDatos.append(",");
+      Integer valor = entry.getValue().get(mes);
+      jsonDatos.append(valor != null ? valor : 0);
+    }
+    jsonDatos.append("]");
+    primera = false;
+  }
+  jsonDatos.append("}");
+
+  request.setAttribute("jsonDatosGrafico", jsonDatos.toString());
+%>
 <html>
 <head>
-  <title>Dashboard</title>
+  <title>Dashboard Coordinador</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -16,56 +53,25 @@
       --sidebar-bg: #e6f0ff;
       --header-bg: #dbeeff;
     }
-
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #e6f0ff 0%, #b3ccff 100%);
       margin: 0;
       padding: 0;
       color: #333;
+      overflow: hidden;
+      height: 100vh;
     }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      grid-template-rows: auto auto;
-      gap: 24px;
-      margin-top: 32px;
-    }
-
-    .dashboard-card {
-      background: var(--color-card-inner);
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(52, 152, 219, 0.08);
-      border: 1.5px solid #c8dbff;
-      padding: 24px;
-      text-align: center;
-    }
-
+    .menu-toggle:checked ~ .sidebar { left: 0; }
+    .menu-toggle:checked ~ .overlay { display: block; opacity: 1; }
     .contenedor-principal {
-      padding: 32px;
-      max-width: 1400px;
-      margin: auto;
+      width: 100%;
+      margin: 0;
+      padding: 20px 20px 10px 20px;
+      box-sizing: border-box;
+      height: calc(100vh - 56.8px);
+      overflow: hidden;
     }
-
-    .dashboard-card {
-      background: #ffffffcc;
-      border-radius: 18px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-    .card-title {
-      font-weight: bold;
-      margin-bottom: 12px;
-      font-size: 1.2em;
-    }
-    canvas {
-      width: 100% !important;
-      max-height: 500px !important;
-      height: auto !important;
-    }
-    /* Sidebar estilo unificado (igual que admin) */
     .sidebar {
       position: fixed;
       top: 0;
@@ -82,10 +88,6 @@
       padding: 24px 0 20px 0;
       backdrop-filter: blur(6px);
     }
-    .menu-toggle:checked ~ .sidebar { left: 0; }
-    /* Fix: NO empujar el contenido al abrir sidebar */
-    /* .menu-toggle:checked ~ .contenedor-principal { margin-left: 280px; } */
-
     .sidebar-content {
       height: 100%;
       display: flex;
@@ -105,7 +107,9 @@
       padding: 0;
       margin: 0;
     }
-    .sidebar-content .menu-links li { margin-bottom: 15px; }
+    .sidebar-content .menu-links li {
+      margin-bottom: 15px;
+    }
     .sidebar-content .menu-links a {
       display: flex;
       align-items: center;
@@ -129,7 +133,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
       color: #003366;
     }
-    /* Overlay para sidebar */
     .overlay {
       position: fixed;
       top: 0;
@@ -142,16 +145,6 @@
       transition: opacity 0.3s ease;
       z-index: 2000;
     }
-    .styled-select {
-      background: #e6f0ff;
-      border: 1.5px solid #3498db;
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 1em;
-      color: #333;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-
     .menu-toggle:checked ~ .overlay {
       opacity: 1;
       visibility: visible;
@@ -280,95 +273,158 @@
       }
     }
     /* DASHBOARD GRID */
+    .dashboard-wrapper {
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(52, 152, 219, 0.12), 0 1.5px 8px rgba(52, 152, 219, 0.10);
+      border: 2px solid #b3ccff;
+      padding: 10px 15px;
+      max-width: 1400px;
+      margin: 0 auto;
+      transition: box-shadow 0.2s;
+      height: 100%;
+      overflow: hidden;
+    }
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 1fr 2fr 1fr;
-      grid-template-rows: auto;
-      gap: 24px;
-      width: 100%;
-      margin-top: 32px;
+      grid-template-columns: 0.6fr 1.4fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 15px;
+      padding: 0;
+      height: 100%;
+      align-items: stretch;
     }
-    .dashboard-card {
-      background: #dbeeff;
+    .main-chart-container {
+      background: #ffffff;
       border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      padding: 24px 18px;
+      box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+      border: 1px solid #e1ecf4;
+      padding: 12px;
+      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 1.15em;
-      font-weight: 500;
-      color: #222;
-      min-height: 120px;
+      height: 100%;
     }
-    /* Ubicación de cada bloque */
-    .card-encuestador { grid-column: 1/2; grid-row: 1/2; }
-    .card-grafico-distrito { grid-column: 2/3; grid-row: 1/3; }
-    .card-dato { grid-column: 3/4; grid-row: 1/2; }
-    .card-otros { grid-column: 1/2; grid-row: 2/3; }
-    .card-pastel {
-      grid-column: 1 / 2;
-      grid-row: 1 / 2;
+    .future-chart-container {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+      border: 1px solid #e1ecf4;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ccc;
+      font-size: 1.1rem;
+      min-height: 300px;
     }
-    .card-reporte { grid-column: 1/4; grid-row: 3/4; }
-    /* Responsive */
+    .bar-chart-container {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+      border: 1px solid #e1ecf4;
+      padding: 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .chart-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
+      margin: 0 0 3px 0;
+    }
+    .chart-container {
+      position: relative;
+      height: 190px;
+      width: 100%;
+      max-width: 210px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bar-chart-container .chart-container {
+      height: calc(100% - 60px);
+      max-width: 100%;
+      width: 100%;
+    }
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
     @media (max-width: 1100px) {
       .dashboard-grid {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto;
-        gap: 18px;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 10px;
       }
-
-      .card-encuestador {
-        grid-column: 1/2;
-        grid-row: 1/2;
+      .dashboard-wrapper {
+        padding: 10px;
+        margin: 0 auto;
+        height: 100%;
       }
-
-      .card-grafico-distrito {
-        grid-column: 2 / 3;
-        grid-row: 1 / 3;
+      .contenedor-principal {
+        padding: 15px 15px 10px 15px;
       }
-
-      @media (max-width: 800px) {
-        .dashboard-grid {
-          grid-template-columns: 1fr;
-          grid-template-rows: auto;
-          gap: 16px;
-        }
-
-        .dashboard-card {
-          min-height: 80px;
-        }
-
-        .card-encuestador,
-        .card-dato,
-        .card-otros,
-        .card-linea {
-          grid-column: 1 / 2;
-          grid-row: 2 / 3;
-        }
-
-        .card-pastel,
-        .card-reporte {
-          grid-column: 1/2 !important;
-          grid-row: auto !important;
-        }
+      .bar-chart-container {
+        grid-row: auto !important;
       }
-      /* Select filtro */
-
-
     }
-    .dashboard-select {
-      width: 180px;
-      margin-bottom: 20px;
+    @media (max-width: 700px) {
+      .chart-legend {
+        gap: 10px;
+      }
+      .chart-container {
+        height: 180px;
+        max-width: 200px;
+      }
+      .dashboard-wrapper {
+        padding: 8px;
+        margin: 0 auto;
+        height: 100%;
+      }
+      .contenedor-principal {
+        padding: 10px 10px 5px 10px;
+      }
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 8px;
+      }
+      .bar-chart-container {
+        grid-row: auto !important;
+      }
+    }
+    .styled-select {
+      background: #e6f0ff;
+      border: 1.5px solid #3498db;
+      border-radius: 8px;
       padding: 6px 12px;
       font-size: 1em;
-      border-radius: 8px;
-      border: 1.5px solid #3498db;
-      background: #e6f0ff;
       color: #333;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      margin-bottom: 15px;
     }
   </style>
 </head>
@@ -377,12 +433,11 @@
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
 
 <!-- Sidebar -->
-
 <div class="sidebar">
   <div class="sidebar-content">
     <div class="sidebar-separator"></div>
     <ul class="menu-links">
-      <li><a href="InicioCoordinadorServlet"><i class="fa-solid fa-chart-line"></i> Ver Dashboard</a></li>
+      <li><a href="DashboardServlet"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
       <li><a href="GestionEncuestadoresServlet"><i class="fa-solid fa-users"></i> Gestionar Encuestadores</a></li>
       <li><a href="GestionarFormulariosServlet"><i class="fa-solid fa-file-alt"></i> Gestionar Formularios</a></li>
       <li><a href="CargarArchivosServlet"><i class="fa-solid fa-upload"></i> Cargar Archivos</a></li>
@@ -432,145 +487,389 @@
 
 <!-- Contenido principal -->
 <main class="contenedor-principal">
-  <h2>Dashboard de Zona: ${sessionScope.nombre}</h2>
-  <label for="filtroDistrito" style="font-weight: bold; margin-right: 12px;">Filtrar por distrito:</label>
-  <select id="filtroDistrito" class="dashboard-select">
-    <option value="todos">Todos</option>
-  </select>
+  <div class="dashboard-wrapper">
+    <h2 style="margin-bottom: 15px;">Dashboard de Zona</h2>
 
-  <!-- Gráficos -->
-  <div class="dashboard-grid">
-    <div class="dashboard-card card-pastel">
-      <div class="card-title" id="tituloPastelZona">Encuestadores en la zona (activos vs inactivos)</div>
-      <canvas id="graficoPastelZona"></canvas>
-    </div>
+    <!-- Filtro por distrito -->
+    <select id="filtroDistrito" class="styled-select">
+      <option value="todos">Todos los distritos</option>
+      <c:forEach items="${distritosJson}" var="distrito">
+        <option value="${distrito}">${distrito}</option>
+      </c:forEach>
+    </select>
 
-    <div class="dashboard-card card-grafico-distrito">
-      <div class="card-title" id="tituloGraficoDistrito">Distribución por distrito (activos vs inactivos)</div>
-      <canvas id="graficoPorDistrito"></canvas>
-    </div>
+    <div class="dashboard-grid">
+      <!-- Gráfico de Encuestadores -->
+      <div class="main-chart-container" style="grid-column: 1; grid-row: 1;">
+        <h3 class="chart-title">Encuestadores</h3>
+        <div class="chart-container">
+          <canvas id="encuestadoresChart"></canvas>
+        </div>
+        <div class="chart-legend" id="encuestadoresLegend">
+          <!-- La leyenda se generará dinámicamente con JavaScript -->
+        </div>
+      </div>
 
-    <div class="dashboard-card card-linea">
-      <div class="card-title">Evolución mensual de encuestadores</div>
-      <canvas id="graficoLinea"></canvas>
+      <!-- Gráfico de distribución por distrito -->
+      <div class="main-chart-container" style="grid-column: 1; grid-row: 2;">
+        <h3 class="chart-title">Distribución por Distrito</h3>
+        <div class="chart-container">
+          <canvas id="distritosChart"></canvas>
+        </div>
+        <div class="chart-legend" id="distritosLegend">
+          <!-- La leyenda se generará dinámicamente con JavaScript -->
+        </div>
+      </div>
+
+      <!-- Gráfico de líneas para formularios por encuestador -->
+      <div class="bar-chart-container" style="grid-column: 2; grid-row: 1 / -1;">
+        <h3 class="chart-title">Formularios Completados por Mes</h3>
+        <div class="chart-container">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 </main>
-<!-- Debug rápido en HTML -->
-<div style="display:none">
-  ${distritosJson}<br>
-  ${activosDistritoJson}<br>
-  ${inactivosDistritoJson}<br>
-</div>
+
 <script>
-  const activosZona = ${activosZona};
-  const inactivosZona = ${inactivosZona};
+  // Datos dinámicos desde el backend (con valores por defecto para prueba)
+  const encuestadores = {
+    activos: Number('${encuestadoresActivos}') || 0,
+    inactivos: Number('${encuestadoresInactivos}') || 0
+  };
+
+  // Datos para gráfico por distrito
   const distritos = ${distritosJson};
   const activosPorDistrito = ${activosDistritoJson};
   const inactivosPorDistrito = ${inactivosDistritoJson};
 
-  distritos.forEach(d => {
-    const option = document.createElement("option");
-    option.value = d;
-    option.text = d;
-    document.getElementById("filtroDistrito").appendChild(option);
-  });
+  document.addEventListener("DOMContentLoaded", function() {
+    // Función para crear leyendas dinámicas
+    function createLegend(containerId, data, colors, labels) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
 
-  const pastelChart = new Chart(document.getElementById('graficoPastelZona'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Activos', 'Inactivos'],
-      datasets: [{
-        data: [activosZona, inactivosZona],
-        backgroundColor: ['#2ecc71', '#e74c3c']
-      }]
-    },
-    options: {
-      cutout: '60%',
-      plugins: {
-        legend: {
-          position: 'bottom'
+      data.forEach((value, index) => {
+        const legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+
+        const colorBox = document.createElement('div');
+        colorBox.className = 'legend-color';
+        colorBox.style.backgroundColor = colors[index];
+
+        const text = document.createElement('span');
+        text.textContent = labels[index] + ': ' + value;
+
+        legendItem.appendChild(colorBox);
+        legendItem.appendChild(text);
+        container.appendChild(legendItem);
+      });
+    }
+
+    // Crear leyendas
+    createLegend('encuestadoresLegend',
+            [encuestadores.activos, encuestadores.inactivos],
+            ['#27ae60', '#e74c3c'],
+            ['Activos', 'Inactivos']
+    );
+
+    // Plugin para mostrar el número total en el centro del gráfico
+    const centerTextPlugin = {
+      id: 'centerText',
+      beforeDraw: function(chart) {
+        if (chart.config.type === 'doughnut') {
+          const width = chart.width;
+          const height = chart.height;
+          const ctx = chart.ctx;
+
+          ctx.restore();
+          const fontSize = (height / 114).toFixed(2);
+          ctx.font = fontSize + "em sans-serif";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "#333";
+
+          const total = chart.config.data.datasets[0].data.reduce((a, b) => a + b, 0);
+          const text = total.toString();
+          const textX = Math.round((width - ctx.measureText(text).width) / 2);
+          const textY = height / 2;
+
+          ctx.fillText(text, textX, textY);
+          ctx.save();
+        }
+      }
+    };
+
+    // Crear el gráfico de Encuestadores
+    const encCtx = document.getElementById('encuestadoresChart').getContext('2d');
+    const encuestadoresChart = new Chart(encCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Activos', 'Inactivos'],
+        datasets: [{
+          data: [encuestadores.activos, encuestadores.inactivos],
+          backgroundColor: ['#27ae60', '#e74c3c'],
+          borderColor: ['#ffffff', '#ffffff'],
+          borderWidth: 3,
+          hoverBorderWidth: 5,
+          hoverBorderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.9)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: '#3498db',
+            borderWidth: 2,
+            cornerRadius: 10,
+            padding: 12,
+            displayColors: true,
+            titleFont: { size: 14, weight: 'bold' },
+            bodyFont: { size: 13 },
+            callbacks: {
+              title: function(context) {
+                return 'Encuestadores ' + context[0].label;
+              },
+              label: function(context) {
+                const value = context.parsed;
+                return 'Cantidad: ' + value + ' usuarios';
+              }
+            }
+          }
         },
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const value = context.parsed;
-              return `${context.label}: ${value} encuestadores`;
+        animation: {
+          animateRotate: true,
+          duration: 1500,
+          easing: 'easeInOutQuart'
+        },
+        hover: { animationDuration: 300 }
+      },
+      plugins: [centerTextPlugin]
+    });
+
+    // Crear el gráfico de distribución por distrito
+    const distCtx = document.getElementById('distritosChart').getContext('2d');
+    const distritosChart = new Chart(distCtx, {
+      type: 'bar',
+      data: {
+        labels: distritos,
+        datasets: [
+          {
+            label: 'Activos',
+            data: activosPorDistrito,
+            backgroundColor: '#2ecc71',
+            borderColor: '#27ae60',
+            borderWidth: 1
+          },
+          {
+            label: 'Inactivos',
+            data: inactivosPorDistrito,
+            backgroundColor: '#e74c3c',
+            borderColor: '#c0392b',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.raw;
+              }
             }
           }
         }
       }
-    }
-  });
+    });
 
-  const ctxDistrito = document.getElementById('graficoPorDistrito').getContext('2d');
-  const graficoDistrito = new Chart(ctxDistrito, {
-    type: 'bar',
-    data: {
-      labels: ['Activos', 'Inactivos'],
-      datasets: [{
-        label: '',
-        data: [0, 0],
-        backgroundColor: ['#3498db', '#e67e22']
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      },
-      plugins: {
-        legend: { display: false }
+    // Crear el gráfico de líneas para formularios por encuestador
+    const barCtx = document.getElementById('barChart').getContext('2d');
+
+    // Obtener datos reales del backend o usar fallback
+    const datosReales = <c:out value="${jsonDatosGrafico}" escapeXml="false" />;
+
+    // Datos de fallback para cuando no hay datos del backend
+    const datosEjemplo = {
+      'Encuestador 1': [5, 8, 6, 10, 12, 15, 18, 20, 15, 12, 10, 8],
+      'Encuestador 2': [3, 5, 7, 9, 11, 13, 15, 13, 11, 9, 7, 5],
+      'Encuestador 3': [2, 4, 6, 8, 10, 12, 14, 12, 10, 8, 6, 4]
+    };
+
+    // Usar datos reales si están disponibles, sino usar ejemplos
+    const datosAUsar = Object.keys(datosReales).length > 0 ? datosReales : datosEjemplo;
+
+    // Obtener los encuestadores disponibles dinámicamente
+    const encuestadoresDisponibles = Object.keys(datosAUsar);
+    const colores = ['#e74c3c', '#27ae60', '#3498db', '#f39c12', '#9b59b6', '#e67e22', '#1abc9c', '#34495e'];
+
+    const datasets = encuestadoresDisponibles.map((encuestador, index) => ({
+      label: encuestador,
+      data: datosAUsar[encuestador],
+      borderColor: colores[index % colores.length],
+      backgroundColor: colores[index % colores.length].replace('rgb', 'rgba').replace(')', ', 0.1)'),
+      borderWidth: 3,
+      pointBackgroundColor: colores[index % colores.length],
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      tension: 0.4
+    }));
+
+    const formulariosData = {
+      labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+      datasets: datasets
+    };
+
+    new Chart(barCtx, {
+      type: 'line',
+      data: formulariosData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#666',
+              font: {
+                size: 11
+              }
+            },
+            grid: {
+              color: '#e1e1e1',
+              lineWidth: 1
+            },
+            title: {
+              display: true,
+              text: 'Cantidad de Formularios',
+              color: '#666',
+              font: {
+                size: 12,
+                weight: 'bold'
+              }
+            }
+          },
+          x: {
+            ticks: {
+              color: '#666',
+              font: {
+                size: 11
+              }
+            },
+            grid: {
+              color: '#e1e1e1',
+              lineWidth: 1
+            },
+            title: {
+              display: true,
+              text: 'Meses del Año',
+              color: '#666',
+              font: {
+                size: 12,
+                weight: 'bold'
+              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 15,
+              font: {
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: '#3498db',
+            borderWidth: 1,
+            cornerRadius: 8,
+            callbacks: {
+              title: function(context) {
+                return context[0].label;
+              },
+              label: function(context) {
+                return context.dataset.label + ': ' + (context.parsed.y || 'Sin datos') + ' formularios';
+              }
+            }
+          }
+        },
+        animation: {
+          duration: 1500,
+          easing: 'easeInOutQuart'
+        },
+        hover: {
+          animationDuration: 300
+        }
       }
-    }
-  });
+    });
 
-  document.getElementById('filtroDistrito').addEventListener('change', function () {
-    const seleccionado = this.value;
-    const idx = distritos.findIndex(d => d.toLowerCase() === seleccionado.toLowerCase());
-    const titulo = document.getElementById('tituloGraficoDistrito');
-    const tituloPastel = document.getElementById('tituloPastelZona');
-    console.log("Seleccionado:", seleccionado);
-    console.log("Distritos disponibles:", distritos);
-    console.log("Índice encontrado:", distritos.indexOf(seleccionado));
-    if (seleccionado === "todos") {
-      graficoDistrito.data.datasets[0].data = [0, 0];
-      graficoDistrito.data.datasets[0].label = "";
-      titulo.innerText = "Distribución por distrito (activos vs inactivos)";
+    // Manejar cambio de filtro por distrito
+    document.getElementById('filtroDistrito').addEventListener('change', function() {
+      const distritoSeleccionado = this.value;
 
-      pastelChart.data.datasets[0].data = [activosZona, inactivosZona];
-      tituloPastel.innerText = "Encuestadores en la zona (activos vs inactivos)";
-    } else if (idx !== -1) {
-      graficoDistrito.data.datasets[0].data = [activosPorDistrito[idx], inactivosPorDistrito[idx]];
-      graficoDistrito.data.datasets[0].label = seleccionado;
-      titulo.innerText = `Encuestadores en "${seleccionado}"`;
+      if (distritoSeleccionado === 'todos') {
+        // Mostrar datos de toda la zona
+        encuestadoresChart.data.datasets[0].data = [encuestadores.activos, encuestadores.inactivos];
+        encuestadoresChart.update();
 
-      pastelChart.data.datasets[0].data = [activosPorDistrito[idx], inactivosPorDistrito[idx]];
-      tituloPastel.innerText = `Encuestadores en "${seleccionado}" (activos vs inactivos)`;
-    }
+        distritosChart.data.labels = distritos;
+        distritosChart.data.datasets[0].data = activosPorDistrito;
+        distritosChart.data.datasets[1].data = inactivosPorDistrito;
+        distritosChart.update();
+      } else {
+        // Filtrar datos por distrito seleccionado
+        const index = distritos.indexOf(distritoSeleccionado);
+        if (index !== -1) {
+          const activos = activosPorDistrito[index];
+          const inactivos = inactivosPorDistrito[index];
 
-    graficoDistrito.update();
-    pastelChart.update();
-  });
+          // Actualizar gráfico de pastel
+          encuestadoresChart.data.datasets[0].data = [activos, inactivos];
+          encuestadoresChart.update();
 
-  new Chart(document.getElementById('graficoLinea'), {
-    type: 'line',
-    data: {
-      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-      datasets: [{
-        label: 'Encuestadores activos',
-        data: [5, 8, 12, 15, 20, 18],
-        borderColor: '#8e44ad',
-        fill: false,
-        tension: 0.2
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
+          // Actualizar gráfico de barras (mostrar solo el distrito seleccionado)
+          distritosChart.data.labels = [distritoSeleccionado];
+          distritosChart.data.datasets[0].data = [activos];
+          distritosChart.data.datasets[1].data = [inactivos];
+          distritosChart.update();
+        }
       }
-    }
+    });
   });
 </script>
 </body>

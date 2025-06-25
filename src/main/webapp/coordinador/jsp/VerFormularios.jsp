@@ -1,209 +1,222 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <html>
-<head>
-    <title>Gestión de Encuestadores</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/estilos/encuestador.css">
-  <style>
+<style>
     :root {
-      --color-primary: #3498db;
-      --color-success: #2ecc71;
-      --color-danger: #e74c3c;
-      --color-gray: #95a5a6;
+        --color-primary: #3498db;
+        --color-success: #2ecc71;
+        --color-danger: #e74c3c;
+        --color-gray: #95a5a6;
     }
 
     /* ---- Estilos para el contenido principal (ajustados por el sidebar) ---- */
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f7fa;
-      margin: 0;
-      padding: 0;
-      color: #333;
-      transition: margin-left 0.3s;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        transition: margin-left 0.3s;
     }
     .menu-toggle {
-      display: none !important;
+        display: none !important;
     }
     /* Ajuste cuando el sidebar está abierto */
     .menu-toggle:checked ~ .sidebar {
-      left: 0;
+        left: 0;
     }
     .menu-toggle:checked ~ .overlay {
-      display: block;
-      opacity: 1;
+        display: block;
+        opacity: 1;
     }
-    /* Fix: NO empujar el contenido al abrir sidebar */
-    /* .menu-toggle:checked ~ .contenedor-principal { margin-left: 280px; } */
 
-    /* Contenedor principal (empujado por el sidebar) */
+    /* Contenedor principal */
     .contenedor-principal, .main-content {
-      width: 100%;
-      margin: 0;
-      padding: 30px 0 0 0;
-      box-sizing: border-box;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        background: #fff;
+        min-height: calc(100vh - 56.8px);
     }
 
-    /* ---- Estilos específicos para la tabla (como antes) ---- */
+    /* ---- Estilos específicos para la tabla ---- */
     .contenedor {
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      padding: 25px;
-      max-width: 1200px;
-      margin: 20px auto;
+        background: #fff;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        width: 100vw;
+        max-width: 100vw;
+        margin: 0;
+        padding: 32px 5vw 24px 5vw;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        box-sizing: border-box;
     }
-
     .tabla-container {
-      overflow-x: auto;
-      margin-top: 20px;
+        overflow-x: auto;
+        margin-top: 20px;
     }
 
     table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: 1600px;
+        margin: 0 auto;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
     th, td {
-      padding: 15px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
     }
 
     th {
-      background-color: #f8f9fa;
-      color: #2c3e50;
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.85em;
-      letter-spacing: 0.5px;
+        background-color: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85em;
+        letter-spacing: 0.5px;
+    }
+
+    th.estado-col {
+        text-align: center;
+    }
+
+    td.estado-col {
+        text-align: center;
     }
 
     tr:hover {
-      background-color: #f8f9fa;
+        background-color: #f8f9fa;
     }
 
     .estado-activo, .estado-inactivo {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 10px;
-      border-radius: 20px;
-      font-size: 0.85em;
-      font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 500;
     }
 
     .estado-activo {
-      background-color: rgba(46, 204, 113, 0.1);
-      color: var(--color-success);
+        background-color: rgba(46, 204, 113, 0.1);
+        color: var(--color-success);
     }
 
     .estado-inactivo {
-      background-color: rgba(231, 76, 60, 0.1);
-      color: var(--color-danger);
+        background-color: rgba(231, 76, 60, 0.1);
+        color: var(--color-danger);
     }
-    /* Sidebar estilo unificado (igual que admin) */
+
+    /* Sidebar estilo unificado */
     .sidebar {
-      position: fixed;
-      top: 0;
-      left: -280px;
-      width: 280px;
-      height: 100%;
-      background: linear-gradient(135deg, #dbeeff 60%, #b3ccff 100%);
-      box-shadow: 8px 0 32px rgba(52, 152, 219, 0.13), 2px 0 8px rgba(52, 152, 219, 0.10);
-      border-right: 3px solid #3498db;
-      border-radius: 0 28px 0 0;
-      transition: left 0.3s ease, box-shadow 0.2s;
-      z-index: 2001;
-      overflow-y: auto;
-      padding: 24px 0 20px 0;
-      backdrop-filter: blur(6px);
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 280px;
+        height: 100%;
+        background: linear-gradient(135deg, #dbeeff 60%, #b3ccff 100%);
+        box-shadow: 8px 0 32px rgba(52, 152, 219, 0.13), 2px 0 8px rgba(52, 152, 219, 0.10);
+        border-right: 3px solid #3498db;
+        border-radius: 0 28px 0 0;
+        transition: left 0.3s ease, box-shadow 0.2s;
+        z-index: 2001;
+        overflow-y: auto;
+        padding: 24px 0 20px 0;
+        backdrop-filter: blur(6px);
     }
     .menu-toggle:checked ~ .sidebar { left: 0; }
-    /* Fix: NO empujar el contenido al abrir sidebar */
-    /* .menu-toggle:checked ~ .contenedor-principal { margin-left: 280px; } */
 
     .sidebar-content {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
     }
     .sidebar-separator {
-      width: 80%;
-      height: 2px;
-      background: linear-gradient(90deg, #b3ccff 0%, #3498db 100%);
-      border-radius: 2px;
-      margin: 18px auto 18px auto;
-      opacity: 0.7;
+        width: 80%;
+        height: 2px;
+        background: linear-gradient(90deg, #b3ccff 0%, #3498db 100%);
+        border-radius: 2px;
+        margin: 18px auto 18px auto;
+        opacity: 0.7;
     }
     .sidebar-content .menu-links {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
 
     .sidebar-content .menu-links li {
-      margin-bottom: 15px;
+        margin-bottom: 15px;
     }
 
     .sidebar-content .menu-links a {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      margin: 0 15px;
-      border-radius: 8px;
-      color: #1a1a1a;
-      text-decoration: none;
-      background-color: transparent;
-      transition: all 0.3s ease;
-      font-size: 16px;
-      font-weight: bold;
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        margin: 0 15px;
+        border-radius: 8px;
+        color: #1a1a1a;
+        text-decoration: none;
+        background-color: transparent;
+        transition: all 0.3s ease;
+        font-size: 16px;
+        font-weight: bold;
     }
 
     .sidebar-content .menu-links a i {
-      margin-right: 10px;
-      font-size: 18px;
+        margin-right: 10px;
+        font-size: 18px;
     }
 
     .sidebar-content .menu-links a:hover {
-      background-color: #b3ccff;
-      transform: scale(1.05);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-      color: #003366;
+        background-color: #b3ccff;
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+        color: #003366;
     }
     .menu-toggle:checked ~ .sidebar {
-      left: 0;
+        left: 0;
     }
     .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.5);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease;
-      z-index: 2000;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+        z-index: 2000;
     }
     .menu-toggle:checked ~ .overlay {
-      opacity: 1;
-      visibility: visible;
+        opacity: 1;
+        visibility: visible;
     }
-    
+
     .header-bar {
         background-color: #dbeeff;
         height: 56.8px;
         display: flex;
         align-items: center;
-        justify-content: flex-start; /* <--- Cambia center por flex-start */
+        justify-content: flex-start;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         position: relative;
         z-index: 800;
@@ -217,99 +230,95 @@
         justify-content: flex-start;
         gap: 1rem;
         margin: 0;
-        padding: 0 20px; /* opcional, para no pegar todo al borde */
+        padding: 0 20px;
         box-sizing: border-box;
     }
-    /* Cuando el sidebar está abierto, desplaza el header-content */
 
     .header-left {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem; /* reducir espacio entre las 3 rayas y el logo */
-      margin-left: 0; /* sin margen extra */
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: 0;
     }
     .menu-icon {
-      font-size: 26px; /* ligeramente más grande para que sea visible */
-      cursor: pointer;
-      color: #333;
-      display: inline-block;
-      margin-left: 0; /* pegado a la izquierda */
+        font-size: 26px;
+        cursor: pointer;
+        color: #333;
+        display: inline-block;
+        margin-left: 0;
     }
     .logo-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-      margin-left: 10px; /* separación del logo respecto a las rayas */
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        margin-left: 10px;
     }
     .logo-large img {
-      height: 40px; /* más pequeño para que quede estético */
-      object-fit: contain;
+        height: 40px;
+        object-fit: contain;
     }
     .header-right {
-      display: flex;
-      gap: 2.5rem; /* mayor separación entre iconos para estética */
-      margin-left: auto; /* para empujar a la derecha */
+        display: flex;
+        gap: 2.5rem;
+        margin-left: auto;
     }
-    /* Iconos de Inicio y Encuestador más pequeños */
     .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #333;
-      text-transform: uppercase;
-      font-size: 0.9rem;
-      user-select: none;
-      position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #333;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        user-select: none;
+        position: relative;
     }
     .nav-icon {
-      width: 28px; /* más pequeño */
-      height: 28px;
-      object-fit: cover;
+        width: 28px;
+        height: 28px;
+        object-fit: cover;
     }
-    /* Texto debajo de inicio quitado */
     .nav-item#btn-inicio span {
-      display: none;
+        display: none;
     }
-    /* Texto a la izquierda del ícono encuestador */
     .nav-item#btn-encuestador {
-      flex-direction: row;
-      justify-content: flex-start;
-      gap: 8px;
-      color: #007bff;
-      font-weight: bold;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 8px;
+        color: #007bff;
+        font-weight: bold;
     }
     .nav-item#btn-encuestador span {
-      display: inline-block;
+        display: inline-block;
     }
     .dropdown-menu {
-      display: none;
-      position: absolute;
-      top: 110%;
-      left: 0;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      min-width: 140px;
-      z-index: 1001;
-      padding: 8px 0;
+        display: none;
+        position: absolute;
+        top: 110%;
+        left: 0;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        min-width: 140px;
+        z-index: 1001;
+        padding: 8px 0;
     }
     .nav-item.dropdown:focus-within .dropdown-menu,
     .nav-item.dropdown:hover .dropdown-menu {
-      display: block;
+        display: block;
     }
     .dropdown-menu a {
-      display: block;
-      padding: 8px 18px;
-      color: #333;
-      text-decoration: none;
-      font-size: 0.95em;
-      transition: background 0.2s;
+        display: block;
+        padding: 8px 18px;
+        color: #333;
+        text-decoration: none;
+        font-size: 0.95em;
+        transition: background 0.2s;
     }
     .dropdown-menu a:hover {
-      background: #e6f0ff;
-      color: #007bff;
+        background: #e6f0ff;
+        color: #007bff;
     }
     .dropdown-estado {
         position: relative;
@@ -359,29 +368,86 @@
         justify-content: flex-start;
         gap: 10px;
         align-items: center;
+        margin-top: 18px;
+        margin-bottom: 18px;
     }
     .input-filtro {
         padding: 8px 12px;
         border: 1px solid #ccc;
-        border-radius: 8px;
+        border-radius: 6px;
         font-size: 14px;
         min-width: 180px;
     }
-    .btn-filtrar {
-        background-color: #3498db;
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 14px;
-        cursor: pointer;
+    .input-busqueda, .select-zona {
+        height: 40px;
+        min-width: 140px;
+        padding: 8px 20px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        box-sizing: border-box;
+        margin-right: 0;
+        background: #fff;
+        color: #333;
+        outline: none;
+        transition: border 0.2s;
         display: flex;
         align-items: center;
+    }
+    .input-busqueda:focus, .select-zona:focus {
+        border: 1.5px solid #2196f3;
+    }
+    .btn-filtrar, .btn-excel {
+        height: 40px;
+        min-width: 140px;
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         gap: 6px;
+        box-sizing: border-box;
+    }
+    .btn-filtrar {
+        background: #2196f3;
+        color: #fff;
+    }
+    .btn-excel {
+        background: #219653;
+        color: #fff;
     }
     .btn-filtrar:hover {
-        background-color: #2980b9;
+        background: #1769aa;
+    }
+    .btn-excel:hover {
+        background: #17693a;
+    }
+
+    .paginacion {
+        margin-top: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    .paginacion a {
+        color: #3498db;
+        font-weight: bold;
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: background 0.2s;
+        font-size: 0.95rem;
+    }
+    .paginacion a.active,
+    .paginacion a:hover {
+        background-color: #e6f0ff;
     }
     .btn-cambiar-estado {
         color: white;
@@ -407,32 +473,41 @@
     .btn-estado-inactivo {
         background-color: #e74c3c;
     }
-    .paginacion {
-        margin-top: 24px;
+    .filtros-superior {
         display: flex;
-        justify-content: center;
         align-items: center;
-        gap: 8px;
-        font-family: inherit;
+        gap: 10px;
+        margin-top: 18px;
+        margin-bottom: 18px;
     }
-    .paginacion a {
-        color: #3498db;
-        font-weight: bold;
-        text-decoration: none;
-        padding: 6px 12px;
-        border-radius: 6px;
-        transition: background 0.2s;
-        font-size: 0.95rem;
-    }
-    .paginacion a.active,
-    .paginacion a:hover {
-        background-color: #e6f0ff;
-    }
-
-  </style>
+</style>
+<head>
+    <title>Gestión de Encuestadores</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/estilos/encuestador.css">
 </head>
 <body>
 <input type="checkbox" id="menu-toggle" class="menu-toggle" style="display:none;" />
+<div id="toast" style="
+  visibility: hidden;
+  position: fixed;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2ecc71;
+  color: white;
+  text-align: center;
+  border-radius: 10px;
+  padding: 20px 25px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  z-index: 9999;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.5s ease, top 0.5s ease;
+">
+    Mensaje
+</div>
 <div class="sidebar">
     <div class="sidebar-content">
         <div class="sidebar-separator"></div>
@@ -476,15 +551,17 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2 style="margin-bottom: 0.5em;">Gestión de Encuestadores</h2>
         </div>
-        <div class="filtros-superior">
-            <form method="get" action="GestionEncuestadoresServlet" style="display: flex; align-items: center; gap: 10px;">
-                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
-                <select name="estado" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
+        <div style="display: flex; justify-content: flex-start; margin-bottom: 24px;">
+            <form method="get" action="GestionEncuestadoresServlet" style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" name="nombre" placeholder="Buscar por nombre o DNI" value="${param.nombre}" class="input-busqueda" />
+                <select name="estado" class="select-zona">
                     <option value="">Todos</option>
                     <option value="2" ${param.estado == '2' ? 'selected' : ''}>Activado</option>
                     <option value="1" ${param.estado == '1' ? 'selected' : ''}>Desactivado</option>
                 </select>
-                <button type="submit" class="btn-filtrar"><i class="fas fa-search"></i> Filtrar</button>
+                <button type="submit" class="btn-filtrar">
+                    <i class="fa fa-search"></i> Filtrar
+                </button>
             </form>
         </div>
         <div class="tabla-container">
@@ -514,12 +591,11 @@
                                 <td>${encuestador.distritoNombre}</td>
                                 <td class="estado-col">
                                     <button class="btn-cambiar-estado ${encuestador.usuario.idEstado == 2 ? 'btn-estado-activo' : 'btn-estado-inactivo'}"
-                                                               data-id="${encuestador.usuario.idUsuario}"
-                                                               data-estado="${encuestador.usuario.idEstado != null ? encuestador.usuario.idEstado : 2}">
-                                    <i class="fas fa-power-off"></i>
-                                        ${encuestador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
-                                </button>
-
+                                            data-id="${encuestador.usuario.idUsuario}"
+                                            data-estado="${encuestador.usuario.idEstado != null ? encuestador.usuario.idEstado : 2}">
+                                        <i class="fas fa-power-off"></i>
+                                            ${encuestador.usuario.idEstado == 2 ? 'Activado' : 'Desactivado'}
+                                    </button>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -527,17 +603,17 @@
                 </c:choose>
                 </tbody>
             </table>
-            <div class="paginacion">
-                <c:if test="${paginaActual > 1}">
-                    <a href="GestionEncuestadoresServlet?pagina=${paginaActual - 1}">&lt;</a>
-                </c:if>
-                <c:forEach var="i" begin="1" end="${totalPaginas}">
-                    <a href="GestionEncuestadoresServlet?pagina=${i}" class="${i == paginaActual ? 'active' : ''}">${i}</a>
-                </c:forEach>
-                <c:if test="${paginaActual < totalPaginas}">
-                    <a href="GestionEncuestadoresServlet?pagina=${paginaActual + 1}">&gt;</a>
-                </c:if>
-            </div>
+        </div>
+        <div class="paginacion">
+            <c:if test="${paginaActual > 1}">
+                <a href="GestionEncuestadoresServlet?pagina=${paginaActual - 1}">&lt;</a>
+            </c:if>
+            <c:forEach var="i" begin="1" end="${totalPaginas}">
+                <a href="GestionEncuestadoresServlet?pagina=${i}" class="${i == paginaActual ? 'active' : ''}">${i}</a>
+            </c:forEach>
+            <c:if test="${paginaActual < totalPaginas}">
+                <a href="GestionEncuestadoresServlet?pagina=${paginaActual + 1}">&gt;</a>
+            </c:if>
         </div>
     </div>
 </main>
@@ -548,10 +624,10 @@
         <button id="modal-cancel-btn" style="background:#e74c3c; color:#fff; border:none; border-radius:8px; padding:8px 22px; font-weight:bold; cursor:pointer;">Cancelar</button>
     </div>
 </div>
-<div id="toast" style="visibility: hidden; position: fixed; top: 32px; left: 50%; transform: translateX(-50%); background-color: #2ecc71; color: white; text-align: center; border-radius: 10px; padding: 20px 25px; font-size: 1.1rem; font-weight: bold; z-index: 9999; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); opacity: 0; transition: opacity 0.5s ease, top 0.5s ease;">Mensaje</div>
 <script>
+    let cambiosPendientes = {};
+    let idPendiente = null, nuevoEstadoPendiente = null;
     document.addEventListener('DOMContentLoaded', function () {
-        let idPendiente = null, nuevoEstadoPendiente = null;
         document.querySelectorAll('.btn-cambiar-estado').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -577,10 +653,22 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'accion=cambiarEstado&idUsuario=' + encodeURIComponent(idUsuarioLocal) + '&nuevoEstado=' + encodeURIComponent(nuevoEstadoLocal)
             })
-                .then((res) => res.json())
+                .then((res) => {
+                    if (!res.ok) throw new Error('HTTP error ' + res.status);
+                    return res.json().catch(async () => {
+                        const text = await res.text();
+                        mostrarToast('Respuesta inesperada: ' + text.substring(0, 100), false);
+                        throw new Error('Respuesta no JSON: ' + text);
+                    });
+                })
                 .then((data) => {
                     if (data.success) {
-                        const btn = document.querySelector('.btn-cambiar-estado[data-id="' + idUsuarioLocal + '"]');
+                        const allBtns = document.querySelectorAll('.btn-cambiar-estado');
+                        const btn = Array.from(allBtns).find(b => b.getAttribute('data-id') == idUsuarioLocal);
+                        if (!btn) {
+                            mostrarToast('Error: botón no encontrado en DOM (id=' + idUsuarioLocal + ')', false);
+                            return;
+                        }
                         btn.setAttribute('data-estado', nuevoEstadoLocal);
                         btn.innerHTML = '<i class="fas fa-power-off"></i> ' + (nuevoEstadoLocal === '2' ? 'Activado' : 'Desactivado');
                         btn.classList.toggle('btn-estado-activo', nuevoEstadoLocal === '2');
@@ -590,7 +678,10 @@
                         mostrarToast('Error al cambiar estado', false);
                     }
                 })
-                .catch(() => mostrarToast('Error de red al cambiar estado', false));
+                .catch((err) => {
+                    console.error("Error en fetch:", err);
+                    mostrarToast('Error de red al cambiar estado', false);
+                });
             document.getElementById('modal-confirm').style.display = 'none';
             idPendiente = null; nuevoEstadoPendiente = null;
         };

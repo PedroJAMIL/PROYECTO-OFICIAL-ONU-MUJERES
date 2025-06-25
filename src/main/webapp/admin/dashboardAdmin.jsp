@@ -7,16 +7,11 @@
     List<Map<String, Object>> datosGraficoLineas = (List<Map<String, Object>>) request.getAttribute("datosGraficoLineas");
     Map<String, Map<Integer, Integer>> datosPorZona = new HashMap<>();
 
-    // Debug: imprimir datos recibidos
-    System.out.println("[JSP DEBUG] datosGraficoLineas: " + (datosGraficoLineas != null ? datosGraficoLineas.size() : "null"));
-
     if (datosGraficoLineas != null && !datosGraficoLineas.isEmpty()) {
         for (Map<String, Object> dato : datosGraficoLineas) {
             String zona = (String) dato.get("zona");
             Integer mes = (Integer) dato.get("mes");
             Integer cantidad = (Integer) dato.get("formularios_completados");
-
-            System.out.println("[JSP DEBUG] Zona: " + zona + ", Mes: " + mes + ", Cantidad: " + cantidad);
 
             if (!datosPorZona.containsKey(zona)) {
                 datosPorZona.put(zona, new HashMap<>());
@@ -25,26 +20,24 @@
         }
     }
 
-    // Crear JSON manualmente en lugar de usar la librería JSONObject
-    StringBuilder jsonBuilder = new StringBuilder();
-    jsonBuilder.append("{");
-    boolean first = true;    for (Map.Entry<String, Map<Integer, Integer>> entry : datosPorZona.entrySet()) {
-    if (!first) jsonBuilder.append(",");
-    // Escapar el nombre de la zona para evitar problemas con caracteres especiales
-    String zonaNombre = entry.getKey().replace("\"", "\\\"").replace("\\", "\\\\");
-    jsonBuilder.append("\"").append(zonaNombre).append("\":[");
-    for (int mes = 1; mes <= 12; mes++) {
-        if (mes > 1) jsonBuilder.append(",");
-        Integer valor = entry.getValue().get(mes);
-        jsonBuilder.append(valor != null ? valor : 0);
-    }
-    jsonBuilder.append("]");
-    first = false;
-}    jsonBuilder.append("}");
-    String jsonDatosGrafico = jsonBuilder.toString();
+    // Crear JSON para JavaScript
+    StringBuilder jsonDatos = new StringBuilder("{");
+    boolean primera = true;
+    for (Map.Entry<String, Map<Integer, Integer>> entry : datosPorZona.entrySet()) {
+        if (!primera) jsonDatos.append(",");
+        jsonDatos.append("'").append(entry.getKey()).append("':[");
 
-    System.out.println("[JSP DEBUG] JSON generado: " + jsonDatosGrafico);
-    System.out.println("[JSP DEBUG] Zonas encontradas: " + datosPorZona.keySet());
+        for (int mes = 1; mes <= 12; mes++) {
+            if (mes > 1) jsonDatos.append(",");
+            Integer valor = entry.getValue().get(mes);
+            jsonDatos.append(valor != null ? valor : 0);
+        }
+        jsonDatos.append("]");
+        primera = false;
+    }
+    jsonDatos.append("}");
+
+    request.setAttribute("jsonDatosGrafico", jsonDatos.toString());
 %>
 <html>
 <head>
@@ -330,54 +323,54 @@
                                                         justify-content: center;
                                                         color: #ccc;
                                                         font-size: 1.1rem;
-                                                        min-height: 300px;                                                    }        .bar-chart-container {
-                                                                                                                                           background: #ffffff;
-                                                                                                                                           border-radius: 16px;
-                                                                                                                                           box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
-                                                                                                                                           border: 1px solid #e1ecf4;
-                                                                                                                                           padding: 20px;
-                                                                                                                                           text-align: center;
-                                                                                                                                           display: flex;
-                                                                                                                                           flex-direction: column;
-                                                                                                                                           height: 100%;
-                                                                                                                                           min-height: 400px;
-                                                                                                                                       }        .chart-title {
-                                                                                                                                                    font-size: 1.1rem;
-                                                                                                                                                    font-weight: bold;
-                                                                                                                                                    color: #333;
-                                                                                                                                                    margin: 0 0 15px 0;
-                                                                                                                                                }        .chart-container {
-                                                                                                                                                             position: relative;
-                                                                                                                                                             height: 190px;
-                                                                                                                                                             width: 100%;
-                                                                                                                                                             max-width: 210px;
-                                                                                                                                                             margin: 0 auto;
-                                                                                                                                                             display: flex;
-                                                                                                                                                             align-items: center;
-                                                                                                                                                             justify-content: center;
-                                                                                                                                                         }    .bar-chart-container .chart-container {
-                                                                                                                                                                  flex: 1;
-                                                                                                                                                                  height: 350px;
-                                                                                                                                                                  max-width: 100%;
-                                                                                                                                                                  width: 100%;
-                                                                                                                                                                  margin: 0;
-                                                                                                                                                                  position: relative;
-                                                                                                                                                              }.chart-legend {
-                                                                                                                                                                   display: flex;
-                                                                                                                                                                   justify-content: center;
-                                                                                                                                                                   gap: 12px;
-                                                                                                                                                                   margin-top: 8px;
-                                                                                                                                                                   flex-wrap: wrap;
-                                                                                                                                                               }        .legend-item {
-                                                                                                                                                                            display: flex;
-                                                                                                                                                                            align-items: center;
-                                                                                                                                                                            gap: 6px;
-                                                                                                                                                                            font-size: 0.9rem;
-                                                                                                                                                                        }.legend-color {
-                                                                                                                                                                             width: 12px;
-                                                                                                                                                                             height: 12px;
-                                                                                                                                                                             border-radius: 3px;
-                                                                                                                                                                         }@media (max-width: 1100px) {
+                                                        min-height: 300px;
+                                                    }        .bar-chart-container {
+                                                                 background: #ffffff;
+                                                                 border-radius: 16px;
+                                                                 box-shadow: 0 4px 20px rgba(52, 152, 219, 0.08);
+                                                                 border: 1px solid #e1ecf4;
+                                                                 padding: 10px;
+                                                                 text-align: center;
+                                                                 display: flex;
+                                                                 flex-direction: column;
+                                                                 align-items: center;
+                                                                 justify-content: center;
+                                                                 height: 100%;
+                                                             }        .chart-title {
+                                                                          font-size: 1.1rem;
+                                                                          font-weight: bold;
+                                                                          color: #333;
+                                                                          margin: 0 0 3px 0;
+                                                                      }        .chart-container {
+                                                                                   position: relative;
+                                                                                   height: 190px;
+                                                                                   width: 100%;
+                                                                                   max-width: 210px;
+                                                                                   margin: 0 auto;
+                                                                                   display: flex;
+                                                                                   align-items: center;
+                                                                                   justify-content: center;
+                                                                               }
+    .bar-chart-container .chart-container {
+        height: calc(100% - 60px);
+        max-width: 100%;
+        width: 100%;
+    }        .chart-legend {
+                 display: flex;
+                 justify-content: center;
+                 gap: 12px;
+                 margin-top: 8px;
+                 flex-wrap: wrap;
+             }        .legend-item {
+                          display: flex;
+                          align-items: center;
+                          gap: 6px;
+                          font-size: 0.9rem;
+                      }.legend-color {
+                           width: 12px;
+                           height: 12px;
+                           border-radius: 3px;
+                       }@media (max-width: 1100px) {
         .dashboard-grid {
             grid-template-columns: 1fr;
             grid-template-rows: auto auto auto;
@@ -434,6 +427,7 @@
             <li><a href="CrearCoordinadorServlet"><i class="fa-solid fa-user-plus"></i> Crear nuevo usuario</a></li>
             <li><a href="GestionarCoordinadoresServlet"><i class="fa-solid fa-user-tie"></i> Gestionar Coordinadores</a></li>
             <li><a href="GestionarEncuestadoresServlet"><i class="fa-solid fa-user"></i> Gestionar Encuestadores</a></li>
+            <li><a href="GenerarReportesServlet"><i class="fa-solid fa-file-lines"></i> Generar reportes</a></li>
             <li><a href="CerrarSesionServlet"><i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión</a></li>
         </ul>
     </div>
@@ -502,11 +496,13 @@
                 <div class="chart-legend" id="coordinadoresLegend">
                     <!-- La leyenda se generará dinámicamente con JavaScript -->
                 </div>
-            </div>            <!-- Gráfico de líneas para formularios por zona -->
+            </div>
+
+            <!-- Gráfico de líneas para formularios por zona -->
             <div class="bar-chart-container" style="grid-column: 2; grid-row: 1 / -1;">
                 <h3 class="chart-title">Formularios por Zona Geográfica</h3>
                 <div class="chart-container">
-                    <canvas id="barChart" style="width: 100% !important; height: 100% !important; display: block;"></canvas>
+                    <canvas id="barChart"></canvas>
                 </div>
             </div>
         </div>
@@ -697,216 +693,155 @@
                 },
                 hover: { animationDuration: 300 }
             },
-            plugins: [centerTextPlugin]        });        // === GRÁFICO DE FORMULARIOS POR ZONA ===
-        console.log("=== INICIANDO GRÁFICO DE ZONA ===");
+            plugins: [centerTextPlugin]
+        });        // Crear el gráfico de líneas para formularios por zona
+        const barCtx = document.getElementById('barChart').getContext('2d');
 
-        // Verificar elementos necesarios
-        const barCanvas = document.getElementById('barChart');
-        const chartContainer = document.querySelector('.bar-chart-container .chart-container');
+        // Obtener datos reales del backend o usar fallback
+        const datosReales = <c:out value="${jsonDatosGrafico}" escapeXml="false" />;
 
-        console.log("Canvas encontrado:", barCanvas);
-        console.log("Container encontrado:", chartContainer);
-
-        if (chartContainer) {
-            const containerStyles = window.getComputedStyle(chartContainer);
-            console.log("Container dimensions:", {
-                width: containerStyles.width,
-                height: containerStyles.height,
-                display: containerStyles.display,
-                position: containerStyles.position
-            });
-        }
-
-        if (!barCanvas) {
-            console.error('ERROR: Canvas #barChart no encontrado');
-            if (chartContainer) {
-                chartContainer.innerHTML = '<div style="color: red; padding: 20px;">ERROR: Canvas no encontrado</div>';
-            }
-            return;
-        }
-
-        if (typeof Chart === 'undefined') {
-            console.error('ERROR: Chart.js no está cargado');
-            barCanvas.parentElement.innerHTML = '<div style="text-align: center; color: red; padding: 20px;">Error: Chart.js no disponible</div>';
-            return;
-        }
-
-        console.log("Canvas y Chart.js OK");
-        // Mostrar mensaje temporal para verificar que el contenedor es visible
-        if (chartContainer) {
-            chartContainer.style.border = "2px solid red";
-            chartContainer.style.backgroundColor = "#f0f0f0";
-        }
-
-        // === OBTENER DATOS REALES DEL BACKEND ===
-        let datosReales = {};
-
-        // Usar los datos reales del JSON generado en el backend
-        try {
-            const jsonData = '<%= jsonDatosGrafico %>';
-            console.log("JSON del backend:", jsonData);
-
-            if (jsonData && jsonData !== "null" && jsonData !== "{}") {
-                datosReales = JSON.parse(jsonData);
-                console.log("Datos reales parseados:", datosReales);
-            }
-        } catch (e) {
-            console.error("Error al parsear JSON del backend:", e);
-        }
-
-        // Si no hay datos reales, usar datos de ejemplo
-        const datosAUsar = Object.keys(datosReales).length > 0 ? datosReales : {
-            'Zona Norte': [12, 19, 15, 25, 22, 30, 28, 35, 32, 38, 25, 30],
-            'Zona Sur': [8, 14, 12, 18, 16, 22, 20, 25, 23, 28, 18, 22],
-            'Zona Este': [5, 9, 8, 12, 10, 15, 14, 18, 16, 20, 12, 15],
-            'Zona Oeste': [7, 11, 10, 14, 12, 18, 16, 21, 19, 24, 15, 18]
+        // Datos de fallback para cuando no hay datos del backend
+        const datosEjemplo = {
+            'Zona Norte': [45, 52, 48, 61, 55, 67, 73, 69, 62, 58, 64, 71],
+            'Zona Sur': [38, 42, 35, 48, 45, 52, 58, 54, 49, 45, 51, 58],
+            'Zona Este': [25, 28, 32, 35, 38, 42, 46, 43, 40, 37, 41, 44],
+            'Zona Oeste': [30, 33, 29, 36, 32, 39, 42, 38, 35, 33, 37, 40]
         };
-        console.log("Datos finales a usar:", datosAUsar);
 
-        // Obtener las zonas disponibles
+        // Usar datos reales si están disponibles, sino usar ejemplos
+        const datosAUsar = Object.keys(datosReales).length > 0 ? datosReales : datosEjemplo;
+
+        // Función para obtener datos por zona y mes
+        function getDatosMes(zona, mes) {
+            if (datosAUsar[zona] && datosAUsar[zona][mes - 1] !== undefined) {
+                return datosAUsar[zona][mes - 1];
+            }
+            return 0;
+        }
+
+        // Obtener las zonas disponibles dinámicamente
         const zonasDisponibles = Object.keys(datosAUsar);
-        const colores = ['#e74c3c', '#27ae60', '#3498db', '#f39c12', '#9b59b6', '#e67e22'];
+        const colores = ['#e74c3c', '#27ae60', '#3498db', '#f39c12', '#9b59b6', '#e67e22', '#1abc9c', '#34495e'];
 
-        console.log("Zonas disponibles:", zonasDisponibles);
-        console.log("Número de zonas:", zonasDisponibles.length);
-        console.log("Procediendo a crear el gráfico con", zonasDisponibles.length, "zonas");
-        // Crear datasets para el gráfico
         const datasets = zonasDisponibles.map((zona, index) => ({
             label: zona,
-            data: datosAUsar[zona],
+            data: [
+                getDatosMes(zona, 1), getDatosMes(zona, 2), getDatosMes(zona, 3),
+                getDatosMes(zona, 4), getDatosMes(zona, 5), getDatosMes(zona, 6),
+                getDatosMes(zona, 7), getDatosMes(zona, 8), getDatosMes(zona, 9),
+                getDatosMes(zona, 10), getDatosMes(zona, 11), getDatosMes(zona, 12)
+            ],
             borderColor: colores[index % colores.length],
-            backgroundColor: colores[index % colores.length] + '20',
+            backgroundColor: colores[index % colores.length].replace('rgb', 'rgba').replace(')', ', 0.1)'),
             borderWidth: 3,
             pointBackgroundColor: colores[index % colores.length],
             pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
             pointRadius: 6,
-            pointHoverRadius: 8,            tension: 0.4
+            pointHoverRadius: 8,
+            tension: 0.4
         }));
 
-        console.log("Datasets creados:", datasets);
-
-        // Crear configuración del gráfico
         const formulariosData = {
             labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
             datasets: datasets
         };
 
-        console.log("Datos finales para el gráfico:", formulariosData);
-
-        // Crear el gráfico
-        try {
-            const barCtx = barCanvas.getContext('2d');
-            const graficoFormularios = new Chart(barCtx, {
-                type: 'line',
-                data: formulariosData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 80,
-                            ticks: {
-                                stepSize: 10,
-                                color: '#666',
-                                font: {
-                                    size: 11
-                                }
-                            },
-                            grid: {
-                                color: '#e1e1e1',
-                                lineWidth: 1
-                            },
-                            title: {
-                                display: true,
-                                text: 'Cantidad de Formularios',
-                                color: '#666',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
+        new Chart(barCtx, {
+            type: 'line',
+            data: formulariosData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 80,
+                        ticks: {
+                            stepSize: 10,
+                            color: '#666',
+                            font: {
+                                size: 11
                             }
                         },
-                        x: {
-                            ticks: {
-                                color: '#666',
-                                font: {
-                                    size: 11
-                                }
-                            },
-                            grid: {
-                                color: '#e1e1e1',
-                                lineWidth: 1
-                            },
-                            title: {
-                                display: true,
-                                text: 'Meses del Año',
-                                color: '#666',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
+                        grid: {
+                            color: '#e1e1e1',
+                            lineWidth: 1
+                        },
+                        title: {
                             display: true,
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                padding: 15,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: '#3498db',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            callbacks: {
-                                title: function(context) {
-                                    return context[0].label;
-                                },
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + (context.parsed.y || 'Sin datos') + ' formularios';
-                                }
+                            text: 'Cantidad de Formularios',
+                            color: '#666',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
                             }
                         }
                     },
-                    animation: {
-                        duration: 1500,
-                        easing: 'easeInOutQuart'                },
-                    hover: {
-                        animationDuration: 300
+                    x: {
+                        ticks: {
+                            color: '#666',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: '#e1e1e1',
+                            lineWidth: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Meses del Año',
+                            color: '#666',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
                     }
-                }            });
-
-            console.log("Gráfico de formularios por zona creado exitosamente");
-
-            // Remover el borde de diagnóstico después de crear el gráfico
-            setTimeout(() => {
-                if (chartContainer) {
-                    chartContainer.style.border = "";
-                    chartContainer.style.backgroundColor = "";
+                },                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#3498db',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return context.dataset.label + ': ' + (context.parsed.y || 'Sin datos') + ' formularios';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                hover: {
+                    animationDuration: 300
                 }
-            }, 2000);
-
-        } catch (error) {            console.error("ERROR al crear el gráfico:", error);
-            if (chartContainer) {
-                chartContainer.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">Error al crear gráfico: ' + error.message + '</div>';
             }
-        }
+        });
     });
 </script>
 </body>
